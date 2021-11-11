@@ -7,5 +7,5 @@ import javax.inject.Inject
 
 class CatalogOfGoodsViewModel @Inject constructor(private val repository: IRepository) :
     ViewModel() {
-
+    val name = "hello"
 }
