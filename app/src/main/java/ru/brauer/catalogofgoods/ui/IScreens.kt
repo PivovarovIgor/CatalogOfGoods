@@ -2,7 +2,7 @@ package ru.brauer.catalogofgoods.ui
 
 import com.github.terrakok.cicerone.Screen
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import ru.brauer.catalogofgoods.ui.main.CatalogOfGoodsFragment
+import ru.brauer.catalogofgoods.ui.catalogofgoods.CatalogOfGoodsFragment
 
 interface IScreens {
     fun catalogOfGoods(): Screen

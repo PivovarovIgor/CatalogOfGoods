@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
-import ru.brauer.catalogofgoods.ui.main.CatalogOfGoodsViewModel
+import ru.brauer.catalogofgoods.ui.catalogofgoods.CatalogOfGoodsViewModel
 
 @Module
 abstract class ViewModelModule {

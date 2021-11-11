@@ -1,4 +1,4 @@
-package ru.brauer.catalogofgoods.ui.main
+package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import androidx.lifecycle.ViewModel
 import javax.inject.Inject
