@@ -5,13 +5,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
-import dagger.hilt.android.AndroidEntryPoint
+import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.databinding.ActivityMainBinding
 import ru.brauer.catalogofgoods.ui.IScreens
 import javax.inject.Inject
 
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val navigation = AppNavigator(this, R.id.container)
@@ -27,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        App.instance.appComponent.inject(this)
         router.replaceScreen(screens.catalogOfGoods())
     }
 
