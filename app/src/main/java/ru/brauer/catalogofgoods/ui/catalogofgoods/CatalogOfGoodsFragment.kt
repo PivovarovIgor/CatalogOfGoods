@@ -6,9 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
+import ru.brauer.catalogofgoods.domain.AppState
 import javax.inject.Inject
 
 class CatalogOfGoodsFragment : Fragment() {
@@ -18,6 +22,7 @@ class CatalogOfGoodsFragment : Fragment() {
     }
 
     private var binding: FragmentCatalogOfGoodsBinding? = null
+
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
     private val viewModel: CatalogOfGoodsViewModel by lazy {
@@ -38,7 +43,29 @@ class CatalogOfGoodsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         App.instance.appComponent.inject(this)
-        val name = viewModel.name
+        binding?.run {
+            listOfGoods.addItemDecoration(
+                DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            )
+            listOfGoods.addItemDecoration(
+                DividerItemDecoration(context, DividerItemDecoration.HORIZONTAL)
+            )
+            listOfGoods.layoutManager =
+                GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
+            listOfGoods.adapter = CatalogOfGoodsAdapter(viewModel, viewLifecycleOwner)
+        }
+        viewModel.observe(viewLifecycleOwner, ::renderData)
+    }
+
+    private fun renderData(appState: AppState) {
+        binding?.run {
+            progressBar.visibility =
+                if (appState is AppState.Loading) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+        }
     }
 
     override fun onDestroyView() {
