@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
 import ru.brauer.catalogofgoods.domain.AppState
 

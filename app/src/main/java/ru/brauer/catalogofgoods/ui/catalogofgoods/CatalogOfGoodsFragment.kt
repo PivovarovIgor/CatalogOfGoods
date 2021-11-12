@@ -44,12 +44,6 @@ class CatalogOfGoodsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         App.instance.appComponent.inject(this)
         binding?.run {
-            listOfGoods.addItemDecoration(
-                DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
-            )
-            listOfGoods.addItemDecoration(
-                DividerItemDecoration(context, DividerItemDecoration.HORIZONTAL)
-            )
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
             listOfGoods.adapter = CatalogOfGoodsAdapter(viewModel, viewLifecycleOwner)
