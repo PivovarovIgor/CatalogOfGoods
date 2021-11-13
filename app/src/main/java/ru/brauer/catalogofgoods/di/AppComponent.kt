@@ -11,7 +11,8 @@ import javax.inject.Singleton
     modules = [
         CiceroneModule::class,
         ViewModelModule::class,
-        DataModule::class
+        DataModule::class,
+        UiScheduler::class
     ]
 )
 interface AppComponent {
