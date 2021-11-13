@@ -6,13 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.github.terrakok.cicerone.Router
 import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
 import ru.brauer.catalogofgoods.domain.AppState
+import ru.brauer.catalogofgoods.ui.AndroidScreens
+import ru.brauer.catalogofgoods.ui.IScreens
 import javax.inject.Inject
 
 class CatalogOfGoodsFragment : Fragment() {
@@ -25,6 +26,11 @@ class CatalogOfGoodsFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
+    @Inject
+    lateinit var router: Router
+    @Inject
+    lateinit var screens: IScreens
+
     private val viewModel: CatalogOfGoodsViewModel by lazy {
         ViewModelProvider(
             this@CatalogOfGoodsFragment,
@@ -46,7 +52,10 @@ class CatalogOfGoodsFragment : Fragment() {
         binding?.run {
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
-            listOfGoods.adapter = CatalogOfGoodsAdapter(viewModel, viewLifecycleOwner)
+            listOfGoods.adapter =
+                CatalogOfGoodsAdapter(viewModel, viewLifecycleOwner) {
+                    router.navigateTo(screens.detailsOfGoods(it))
+                }
         }
         viewModel.observe(viewLifecycleOwner, ::renderData)
     }

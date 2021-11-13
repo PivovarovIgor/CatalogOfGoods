@@ -5,12 +5,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import ru.brauer.catalogofgoods.R
+import ru.brauer.catalogofgoods.data.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
 import ru.brauer.catalogofgoods.domain.AppState
 
 class CatalogOfGoodsAdapter(
     private val viewModel: CatalogOfGoodsViewModel,
-    private val lifecycleOwner: LifecycleOwner
+    private val lifecycleOwner: LifecycleOwner,
+    private val itemOpener: (data: Goods) -> Unit
 ) :
     RecyclerView.Adapter<CatalogOfGoodsAdapter.ViewHolder>() {
 
@@ -21,7 +25,9 @@ class CatalogOfGoodsAdapter(
 
     @SuppressLint("NotifyDataSetChanged")
     private fun updateShow(appState: AppState) {
-        notifyDataSetChanged()
+        if (appState !is AppState.Error) {
+            notifyDataSetChanged()
+        }
     }
 
     override fun getItemCount(): Int = viewModel.getItemCount()
@@ -32,6 +38,12 @@ class CatalogOfGoodsAdapter(
     ): CatalogOfGoodsAdapter.ViewHolder =
         ItemGoodsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             .let(::ViewHolder)
+            .apply {
+                itemView.setOnClickListener { _ ->
+                    viewModel.getDataAtPosition(absoluteAdapterPosition)
+                        ?.let { itemOpener(it) }
+                }
+            }
 
     override fun onBindViewHolder(holder: CatalogOfGoodsAdapter.ViewHolder, position: Int) =
         holder.bindData(position)
@@ -44,6 +56,10 @@ class CatalogOfGoodsAdapter(
             viewModel.getDataAtPosition(position)
                 ?.let {
                     binding.goodsName.text = it.name
+                    binding.goodsImage.load(it.photoUrl) {
+                        placeholder(R.drawable.ic_baseline_image_24)
+                        error(R.drawable.ic_baseline_image_24)
+                    }
                 }
         }
     }
