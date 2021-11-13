@@ -24,6 +24,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildTypes.each() {
+        def properties = new Properties()
+        properties.load(project.rootProject.file("app.properties").newDataInputStream())
+
+        def hostAddress = properties.getProperty("HOST_ADDRESS","")
+        def login = properties.getProperty("LOGIN","")
+        def password = properties.getProperty("PASSWORD","")
+        def path = properties.getProperty("PATH","")
+
+        it.buildConfigField "String", "HOST_ADDRESS", hostAddress
+        it.buildConfigField "String", "LOGIN", login
+        it.buildConfigField "String", "PASSWORD", password
+        it.buildConfigField "String", "PATH", path
+    }
     buildFeatures {
         viewBinding true
     }
