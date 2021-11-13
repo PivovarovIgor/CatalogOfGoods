@@ -12,7 +12,7 @@ class MockRepository : IRepository {
         listOf(
             Goods(
                 "Фартук",
-                "ftp://fakelftp:poiPOI098@195.133.242.197/webdata/000000003/goods/1/import_files/03/030e5efa-369c-11e9-80e5-005056912b25_4db8a542-92a2-11e9-80f6-005056912b25.jpg"
+                "https://blondypro.ru/upload/iblock/f48/f48036173043a663915d9893a128e497.png"
             ),
             Goods("Рубашка", ""),
             Goods("Штаны", ""),
