@@ -1,77 +1,11 @@
-package ru.brauer.catalogofgoods.data
+package ru.brauer.catalogofgoods.data.commerceml
 
-import android.accounts.NetworkErrorException
 import android.util.Xml
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
-import org.apache.commons.net.ftp.FTP
-import org.apache.commons.net.ftp.FTPClient
-import org.apache.commons.net.ftp.FTPReply
 import org.xmlpull.v1.XmlPullParser
-import ru.brauer.catalogofgoods.BuildConfig
-import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.data.Goods
 import java.io.InputStream
 
-class MockRepository : IRepository {
-    override fun getGoods(): Single<List<Goods>> = Single.fromCallable {
-
-        Thread.sleep(2000L)
-        listOf(
-            Goods(
-                "Фартук",
-                "https://blondypro.ru/upload/iblock/f48/f48036173043a663915d9893a128e497.png"
-            ),
-            Goods("Рубашка", ""),
-            Goods("Штаны", ""),
-        )
-    }.subscribeOn(Schedulers.io())
-}
-
-class CatalogOfGoodsRepository : IRepository {
-    override fun getGoods(): Single<List<Goods>> =
-        Single.fromCallable {
-            CatalogOfGoodsFtpRetriever().retrieveFromFtp()
-        }.subscribeOn(Schedulers.io())
-}
-
-class CatalogOfGoodsFtpRetriever {
-    fun retrieveFromFtp(): List<Goods> {
-
-        val ftpClient = FTPClient()
-        ftpClient.connect(BuildConfig.HOST_ADDRESS)
-        var result = listOf<Goods>()
-        if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
-            ftpClient.enterLocalActiveMode()
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE)
-
-            val replyCode: Int = ftpClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                ftpClient.disconnect()
-                throw NetworkErrorException("FTP server refused connection. Reply code $replyCode")
-            }
-
-            val workDirectory = BuildConfig.PATH
-            if (!ftpClient.changeWorkingDirectory(workDirectory)) {
-                ftpClient.logout()
-                ftpClient.disconnect()
-                throw NetworkErrorException("Not found directory '$workDirectory'")
-            }
-
-            val fileName = "goods/1/import___95ccdeb9-1dbb-472a-a773-83e7ceedd818.xml"
-            val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
-                ?: throw NetworkErrorException("Not found file '$fileName'")
-
-            val commerceMlParser = CommerceMlParser()
-            result = commerceMlParser.parse(inputStream)
-
-            ftpClient.logout()
-            ftpClient.disconnect()
-        }
-        return result
-    }
-}
-
-class CommerceMlParser {
+class CommerceMlParser : IXmlParserByRule {
 
     companion object {
         private val xmlNamespace: String? = null
@@ -84,7 +18,7 @@ class CommerceMlParser {
         private const val TAG_PHOTO_URL = "Картинка"
     }
 
-    fun parse(inputStream: InputStream): List<Goods> {
+    override fun parse(inputStream: InputStream): List<Goods> {
         inputStream.use { inputStream ->
             val parser: XmlPullParser = Xml.newPullParser()
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
@@ -156,34 +90,20 @@ class CommerceMlParser {
                 continue
             }
             when (parser.name) {
-                TAG_ID -> id = readId(parser)
-                TAG_NAME -> name = readName(parser)
-                TAG_PHOTO_URL -> photoUrl = readPhotoUrl(parser)
+                TAG_ID -> id = readPlaintText(parser, TAG_ID)
+                TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
+                TAG_PHOTO_URL -> photoUrl = readPlaintText(parser, TAG_PHOTO_URL)
                 else -> skip(parser)
             }
         }
         return Goods(id, name, photoUrl)
     }
 
-    private fun readPhotoUrl(parser: XmlPullParser): String {
-        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_PHOTO_URL)
-        val url = readText(parser)
-        parser.require(XmlPullParser.END_TAG, xmlNamespace, TAG_PHOTO_URL)
-        return url
-    }
-
-    private fun readName(parser: XmlPullParser): String {
-        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_NAME)
-        val name = readText(parser)
-        parser.require(XmlPullParser.END_TAG, xmlNamespace, TAG_NAME)
-        return name
-    }
-
-    private fun readId(parser: XmlPullParser): String {
-        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_ID)
-        val id = readText(parser)
-        parser.require(XmlPullParser.END_TAG, xmlNamespace, TAG_ID)
-        return id
+    private fun readPlaintText(parser: XmlPullParser, tag: String): String {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, tag)
+        val text = readText(parser)
+        parser.require(XmlPullParser.END_TAG, xmlNamespace, tag)
+        return text
     }
 
     private fun readText(parser: XmlPullParser): String {
