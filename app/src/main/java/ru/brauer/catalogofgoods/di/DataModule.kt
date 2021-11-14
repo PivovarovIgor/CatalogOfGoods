@@ -2,6 +2,7 @@ package ru.brauer.catalogofgoods.di
 
 import dagger.Module
 import dagger.Provides
+import ru.brauer.catalogofgoods.data.CatalogOfGoodsRepository
 import ru.brauer.catalogofgoods.data.MockRepository
 import ru.brauer.catalogofgoods.domain.IRepository
 
@@ -9,5 +10,6 @@ import ru.brauer.catalogofgoods.domain.IRepository
 class DataModule {
 
     @Provides
-    fun repository(): IRepository = MockRepository()
+    fun repository(): IRepository = CatalogOfGoodsRepository()
+
 }
