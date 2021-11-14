@@ -13,7 +13,6 @@ import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
 import ru.brauer.catalogofgoods.domain.AppState
-import ru.brauer.catalogofgoods.ui.AndroidScreens
 import ru.brauer.catalogofgoods.ui.IScreens
 import javax.inject.Inject
 
@@ -73,7 +72,7 @@ class CatalogOfGoodsFragment : Fragment() {
         if (appState is AppState.Error) {
             context?.run {
                 AlertDialog.Builder(this)
-                    .setMessage(appState.ex.message)
+                    .setMessage(appState.exception.message)
                     .show()
             }
         }

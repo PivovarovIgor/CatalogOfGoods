@@ -4,9 +4,9 @@ import ru.brauer.catalogofgoods.data.Goods
 
 sealed class AppState {
 
-    data class Success(val listData: List<Goods>) : AppState()
+    data class Success(val listOfGoods: List<Goods>) : AppState()
 
-    class Error(val ex: Throwable) : AppState()
+    class Error(val exception: Throwable) : AppState()
 
     object Loading : AppState()
 

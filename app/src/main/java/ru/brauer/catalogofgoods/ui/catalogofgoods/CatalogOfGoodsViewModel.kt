@@ -27,11 +27,11 @@ class CatalogOfGoodsViewModel @Inject constructor(
         }
     }
 
-    fun getItemCount() = (liveDataToObserve.value as? AppState.Success)?.listData?.count() ?: 0
+    fun getItemCount() = (liveDataToObserve.value as? AppState.Success)?.listOfGoods?.count() ?: 0
 
     fun getDataAtPosition(position: Int) =
         (liveDataToObserve.value as? AppState.Success)
-            ?.let { it.listData.elementAtOrNull(position) }
+            ?.let { it.listOfGoods.elementAtOrNull(position) }
 
     private fun getData(): Disposable {
         liveDataToObserve.postValue(AppState.Loading)
