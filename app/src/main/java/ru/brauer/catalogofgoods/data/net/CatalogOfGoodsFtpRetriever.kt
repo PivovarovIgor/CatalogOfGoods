@@ -57,7 +57,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
 
     private fun getListOfFiles(ftpClient: FTPClient, nameOfParentDir: String = ""): List<String> {
         val listOfFiles = ftpClient.listFiles(nameOfParentDir) { it.name != DIR_NAME_TO_IGNORE }
-            ?.filterNotNull()?.toMutableList() ?: mutableListOf()
+            ?.filterNotNull()?.toList() ?: listOf()
 
         val nameOfParentDirWithSlash = if (nameOfParentDir.isNotBlank()) {
             "$nameOfParentDir/"
