@@ -5,14 +5,18 @@ import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
-import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
+import ru.brauer.catalogofgoods.data.entities.Goods
 import java.io.InputStream
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val commerceMlParser: IXmlParserByRule
 ) : ICatalogOfGoodsRetrieverFromNet {
+
+    companion object {
+        private const val DIR_NAME_TO_IGNORE = "import_files"
+    }
 
     override fun retrieve(): List<Goods> {
 
@@ -35,16 +39,39 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 ftpClient.disconnect()
                 throw NetworkErrorException("Not found directory '$workDirectory'")
             }
-
-            val fileName = "goods/1/import___95ccdeb9-1dbb-472a-a773-83e7ceedd818.xml"
-            val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
-                ?: throw NetworkErrorException("Not found file '$fileName'")
-
-            result = commerceMlParser.parse(inputStream)
+            val regexOfGoods = Regex("goods/(.*)\\d/(.*)import\\d*___(.*)")
+            val listOfFiles = getListOfFiles(ftpClient)
+            result = listOfFiles
+                .filter { it.matches(regexOfGoods) }
+                .map { fileName ->
+                    val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
+                        ?: throw NetworkErrorException("Not found file '$fileName'")
+                    commerceMlParser.parse(inputStream)
+                }.flatten()
 
             ftpClient.logout()
             ftpClient.disconnect()
         }
         return result
+    }
+
+    private fun getListOfFiles(ftpClient: FTPClient, nameOfParentDir: String = ""): List<String> {
+        val listOfFiles = ftpClient.listFiles(nameOfParentDir) { it.name != DIR_NAME_TO_IGNORE }
+            ?.filterNotNull()?.toMutableList() ?: mutableListOf()
+
+        val nameOfParentDirWithSlash = if (nameOfParentDir.isNotBlank()) {
+            "$nameOfParentDir/"
+        } else {
+            ""
+        }
+        return listOfFiles
+            .filter { it.isDirectory }
+            .flatMap {
+                getListOfFiles(ftpClient, "$nameOfParentDirWithSlash${it.name}")
+            }.let { listOfNestedFiles ->
+                listOfFiles
+                    .filter { it.isFile }
+                    .map { "$nameOfParentDirWithSlash${it.name}" } + listOfNestedFiles
+            }
     }
 }
