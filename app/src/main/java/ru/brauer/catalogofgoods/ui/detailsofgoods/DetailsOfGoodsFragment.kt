@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import coil.load
 import ru.brauer.catalogofgoods.R
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.FragmentDetailsOfGoodsBinding
 
 class DetailsOfGoodsFragment : Fragment() {

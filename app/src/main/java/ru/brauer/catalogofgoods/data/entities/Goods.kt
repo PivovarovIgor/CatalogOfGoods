@@ -1,4 +1,4 @@
-package ru.brauer.catalogofgoods.data
+package ru.brauer.catalogofgoods.data.entities
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

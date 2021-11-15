@@ -1,6 +1,6 @@
 package ru.brauer.catalogofgoods.domain
 
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 
 sealed class AppState {
 

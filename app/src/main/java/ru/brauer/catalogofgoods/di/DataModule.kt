@@ -6,7 +6,7 @@ import ru.brauer.catalogofgoods.data.commerceml.CommerceMlParser
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
 import ru.brauer.catalogofgoods.data.net.CatalogOfGoodsFtpRetriever
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
-import ru.brauer.catalogofgoods.data.repository.CatalogOfGoodsRepository
+import ru.brauer.catalogofgoods.data.CatalogOfGoodsRepository
 import ru.brauer.catalogofgoods.domain.IRepository
 import javax.inject.Singleton
 

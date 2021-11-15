@@ -2,7 +2,7 @@ package ru.brauer.catalogofgoods.data.commerceml
 
 import android.util.Xml
 import org.xmlpull.v1.XmlPullParser
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 import java.io.InputStream
 
 class CommerceMlParser : IXmlParserByRule {

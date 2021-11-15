@@ -7,7 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import ru.brauer.catalogofgoods.R
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
 import ru.brauer.catalogofgoods.domain.AppState
 

@@ -1,6 +1,6 @@
 package ru.brauer.catalogofgoods.data.commerceml
 
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 import java.io.InputStream
 
 interface IXmlParserByRule {

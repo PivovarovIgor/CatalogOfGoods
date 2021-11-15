@@ -5,7 +5,7 @@ import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
-import ru.brauer.catalogofgoods.data.Goods
+import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
 import java.io.InputStream
 import javax.inject.Inject
