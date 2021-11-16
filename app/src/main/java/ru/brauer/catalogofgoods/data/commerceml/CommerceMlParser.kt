@@ -2,6 +2,7 @@ package ru.brauer.catalogofgoods.data.commerceml
 
 import android.util.Xml
 import org.xmlpull.v1.XmlPullParser
+import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.entities.Goods
 import java.io.InputStream
 
@@ -53,10 +54,15 @@ class CommerceMlParser : IXmlParserByRule {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
             }
-            if (parser.name == TAG_GOODS_MULTITUDE) {
-                result += readGoodsMultitude(parser)
-            } else {
-                skip(parser)
+            when (parser.name) {
+                TAG_ID -> {
+                    val id = readPlaintText(parser, TAG_ID)
+                    if (id != BuildConfig.ID_GOODS) {
+                        stepOutFromCurrentElement(parser)
+                    }
+                }
+                TAG_GOODS_MULTITUDE -> result += readGoodsMultitude(parser)
+                else -> skip(parser)
             }
         }
         return result
@@ -119,6 +125,16 @@ class CommerceMlParser : IXmlParserByRule {
         if (parser.eventType != XmlPullParser.START_TAG) {
             throw IllegalStateException("Syntax error XML")
         }
+        var depth = 1
+        while (depth != 0) {
+            when (parser.next()) {
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.START_TAG -> depth++
+            }
+        }
+    }
+
+    private fun stepOutFromCurrentElement(parser: XmlPullParser) {
         var depth = 1
         while (depth != 0) {
             when (parser.next()) {
