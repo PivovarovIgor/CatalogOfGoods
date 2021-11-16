@@ -14,10 +14,6 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val commerceMlParser: IXmlParserByRule
 ) : ICatalogOfGoodsRetrieverFromNet {
 
-    companion object {
-        private const val DIR_NAME_TO_IGNORE = "import_files"
-    }
-
     override fun retrieve(): List<Goods> {
 
         val ftpClient = FTPClient()
@@ -25,7 +21,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
         var result = listOf<Goods>()
         if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
             ftpClient.enterLocalActiveMode()
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE)
+            ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
 
             val replyCode: Int = ftpClient.replyCode
             if (!FTPReply.isPositiveCompletion(replyCode)) {
@@ -39,10 +35,8 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 ftpClient.disconnect()
                 throw NetworkErrorException("Not found directory '$workDirectory'")
             }
-            val regexOfGoods = Regex("goods/(.*)\\d/(.*)import\\d*___(.*)")
             val listOfFiles = getListOfFiles(ftpClient)
             result = listOfFiles
-                .filter { it.matches(regexOfGoods) }
                 .map { fileName ->
                     val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
                         ?: throw NetworkErrorException("Not found file '$fileName'")
@@ -65,7 +59,15 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
     }
 
     private fun getListOfFiles(ftpClient: FTPClient, nameOfParentDir: String = ""): List<String> {
-        val listOfFiles = ftpClient.listFiles(nameOfParentDir) { it.name != DIR_NAME_TO_IGNORE }
+        if (nameOfParentDir.count { (it == '/') } > 1) {
+            return listOf()
+        }
+        val listOfFiles = ftpClient.listFiles(nameOfParentDir) {
+            it.isDirectory || it.name.endsWith(
+                ".xml",
+                true
+            )
+        }
             ?.filterNotNull()?.toList() ?: listOf()
 
         val nameOfParentDirWithSlash = if (nameOfParentDir.isNotBlank()) {
