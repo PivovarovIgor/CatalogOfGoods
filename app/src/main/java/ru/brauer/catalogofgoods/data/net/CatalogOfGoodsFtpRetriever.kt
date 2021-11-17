@@ -1,7 +1,9 @@
 package ru.brauer.catalogofgoods.data.net
 
 import android.accounts.NetworkErrorException
+import android.util.Log
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -16,7 +18,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
 ) : ICatalogOfGoodsRetrieverFromNet {
 
     override fun retrieve(): Observable<List<Goods>> =
-        Observable.create { emitter ->
+        Observable.create<List<Goods>> { emitter ->
 
             val ftpClient = FTPClient()
             ftpClient.connect(BuildConfig.HOST_ADDRESS)
@@ -38,11 +40,13 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 }
                 val listOfFiles = getListOfFiles(ftpClient)
                 listOfFiles
-                    .map { fileName ->
+                    .forEach { fileName ->
                         val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
                             ?: throw NetworkErrorException("Not found file '$fileName'")
                         commerceMlParser.parse(inputStream).subscribe({
+                            Log.i("goods", "Before send to database " + Thread.currentThread().id)
                             emitter.onNext(it)
+                            Log.i("goods", "After send to database " + Thread.currentThread().id)
                         }, { emitter.onError(it) },
                             {
                                 inputStream.close()
@@ -56,13 +60,12 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                                     )
                                 }
                             })
-
                     }
                 ftpClient.logout()
                 ftpClient.disconnect()
             }
             emitter.onComplete()
-        }
+        }.subscribeOn(Schedulers.io())
 
     private fun getListOfFiles(
         ftpClient: FTPClient,

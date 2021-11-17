@@ -1,5 +1,6 @@
 package ru.brauer.catalogofgoods.data
 
+import android.util.Log
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import ru.brauer.catalogofgoods.data.database.AppDatabase
@@ -18,7 +19,12 @@ class CatalogOfGoodsRepository @Inject constructor(
         Single.fromCallable {
             catalogOfGoodsRetriever
                 .retrieve()
-                .subscribe { appDatabase.goodsDao.insert(it.toDatabaseData()) }
+                .observeOn(Schedulers.io())
+                .subscribe {
+                    Log.i("goods", "Before getting on database " + Thread.currentThread().id)
+                    appDatabase.goodsDao.insert(it.toDatabaseData())
+                    Log.i("goods", "After getting on database " + Thread.currentThread().id)
+                }
             appDatabase.goodsDao.getAll().toBusinessData()
         }.subscribeOn(Schedulers.io())
 }
