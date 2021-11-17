@@ -1,7 +1,9 @@
 package ru.brauer.catalogofgoods.data.net
 
+import io.reactivex.rxjava3.core.Observable
 import ru.brauer.catalogofgoods.data.entities.Goods
 
+
 interface ICatalogOfGoodsRetrieverFromNet {
-    fun retrieve(): List<Goods>
+    fun retrieve(): Observable<List<Goods>>
 }

@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods
 
 import android.app.Application
+import ru.brauer.catalogofgoods.di.AppModule
 import ru.brauer.catalogofgoods.di.DaggerAppComponent
 
 class App : Application() {
@@ -11,6 +12,7 @@ class App : Application() {
 
     val appComponent by lazy {
         DaggerAppComponent.builder()
+            .appModule(AppModule(this@App))
             .build()
     }
 

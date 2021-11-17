@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods.data.net
 
 import android.accounts.NetworkErrorException
+import io.reactivex.rxjava3.core.Observable
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -14,51 +15,59 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val commerceMlParser: IXmlParserByRule
 ) : ICatalogOfGoodsRetrieverFromNet {
 
-    override fun retrieve(): List<Goods> {
+    override fun retrieve(): Observable<List<Goods>> =
+        Observable.create { emitter ->
 
-        val ftpClient = FTPClient()
-        ftpClient.connect(BuildConfig.HOST_ADDRESS)
-        var result = listOf<Goods>()
-        if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
-            ftpClient.enterLocalActiveMode()
-            ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
+            val ftpClient = FTPClient()
+            ftpClient.connect(BuildConfig.HOST_ADDRESS)
+            if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
+                ftpClient.enterLocalActiveMode()
+                ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
 
-            val replyCode: Int = ftpClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                ftpClient.disconnect()
-                throw NetworkErrorException("FTP server refused connection. Reply code $replyCode")
-            }
+                val replyCode: Int = ftpClient.replyCode
+                if (!FTPReply.isPositiveCompletion(replyCode)) {
+                    ftpClient.disconnect()
+                    throw NetworkErrorException("FTP server refused connection. Reply code $replyCode")
+                }
 
-            val workDirectory = BuildConfig.PATH
-            if (!ftpClient.changeWorkingDirectory(workDirectory)) {
+                val workDirectory = BuildConfig.PATH
+                if (!ftpClient.changeWorkingDirectory(workDirectory)) {
+                    ftpClient.logout()
+                    ftpClient.disconnect()
+                    throw NetworkErrorException("Not found directory '$workDirectory'")
+                }
+                val listOfFiles = getListOfFiles(ftpClient)
+                listOfFiles
+                    .map { fileName ->
+                        val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
+                            ?: throw NetworkErrorException("Not found file '$fileName'")
+                        commerceMlParser.parse(inputStream).subscribe({
+                            emitter.onNext(it)
+                        }, { emitter.onError(it) },
+                            {
+                                inputStream.close()
+                                if (!ftpClient.completePendingCommand()) {
+                                    ftpClient.logout()
+                                    ftpClient.disconnect()
+                                    emitter.onError(
+                                        NetworkErrorException(
+                                            "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
+                                        )
+                                    )
+                                }
+                            })
+
+                    }
                 ftpClient.logout()
                 ftpClient.disconnect()
-                throw NetworkErrorException("Not found directory '$workDirectory'")
             }
-            val listOfFiles = getListOfFiles(ftpClient)
-            result = listOfFiles
-                .map { fileName ->
-                    val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
-                        ?: throw NetworkErrorException("Not found file '$fileName'")
-                    commerceMlParser.parse(inputStream).also {
-                        inputStream.close()
-                        if (!ftpClient.completePendingCommand()) {
-                            ftpClient.logout()
-                            ftpClient.disconnect()
-                            throw NetworkErrorException(
-                                "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
-                            )
-                        }
-                    }
-                }.flatten()
-
-            ftpClient.logout()
-            ftpClient.disconnect()
+            emitter.onComplete()
         }
-        return result
-    }
 
-    private fun getListOfFiles(ftpClient: FTPClient, nameOfParentDir: String = ""): List<String> {
+    private fun getListOfFiles(
+        ftpClient: FTPClient,
+        nameOfParentDir: String = ""
+    ): List<String> {
         if (nameOfParentDir.count { (it == '/') } > 1) {
             return listOf()
         }
