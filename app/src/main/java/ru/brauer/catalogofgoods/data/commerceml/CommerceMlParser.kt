@@ -81,7 +81,7 @@ class CommerceMlParser : IXmlParserByRule {
         emitter: ObservableEmitter<List<Goods>>
     ) {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_GOODS_MULTITUDE)
-        val result = mutableListOf<Goods>()
+        var result = mutableListOf<Goods>()
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
@@ -90,7 +90,7 @@ class CommerceMlParser : IXmlParserByRule {
                 result += readGoods(parser)
                 if (result.count() >= CHUNK_OF_DATA) {
                     emitter.onNext(result)
-                    result.clear()
+                    result = mutableListOf()
                 }
             } else {
                 skip(parser)

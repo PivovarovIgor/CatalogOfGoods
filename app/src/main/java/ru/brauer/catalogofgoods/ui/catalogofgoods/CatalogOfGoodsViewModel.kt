@@ -3,6 +3,7 @@ package ru.brauer.catalogofgoods.ui.catalogofgoods
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
 import ru.brauer.catalogofgoods.domain.AppState
@@ -17,13 +18,50 @@ class CatalogOfGoodsViewModel @Inject constructor(
     ViewModel() {
 
     private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData()
+    private val backgroundProcessing: MutableLiveData<Boolean> = MutableLiveData()
     private var disposable: Disposable? = null
 
-    fun observe(lifecycleOwner: LifecycleOwner, renderData: (AppState) -> Unit) {
+    private val processingLoadingObserver = object : Observer<Boolean> {
+
+        private var processingDisposable: Disposable? = null
+
+        override fun onSubscribe(disposableOnSubscribe: Disposable) {
+            if (processingDisposable?.isDisposed == false) {
+                processingDisposable?.dispose()
+            }
+            processingDisposable = disposableOnSubscribe
+        }
+
+        override fun onNext(processing: Boolean) {
+            backgroundProcessing.postValue(processing)
+        }
+
+        override fun onError(exeption: Throwable) {
+
+        }
+
+        override fun onComplete() {
+            backgroundProcessing.postValue(false)
+        }
+    }
+
+    init {
+        backgroundProcessing.value = false
+    }
+
+    fun observe(
+        lifecycleOwner: LifecycleOwner,
+        renderData: (AppState) -> Unit,
+        renderBackgroundProcessing: ((Boolean) -> Unit)? = null
+    ) {
         liveDataToObserve.observe(lifecycleOwner, renderData)
         if (liveDataToObserve.value !is AppState.Success
-            && (disposable?.isDisposed != false)) {
+            && (disposable?.isDisposed != false)
+        ) {
             disposable = getData()
+        }
+        renderBackgroundProcessing?.let {
+            backgroundProcessing.observe(lifecycleOwner, it)
         }
     }
 
@@ -34,9 +72,9 @@ class CatalogOfGoodsViewModel @Inject constructor(
             ?.let { it.listOfGoods.elementAtOrNull(position) }
 
     private fun getData(): Disposable {
-        liveDataToObserve.postValue(AppState.Loading)
+        liveDataToObserve.value = AppState.Loading
         return repository
-            .getGoods()
+            .getGoods(processingLoadingObserver)
             .observeOn(uiScheduler)
             .subscribe({
                 liveDataToObserve.value = AppState.Success(it)

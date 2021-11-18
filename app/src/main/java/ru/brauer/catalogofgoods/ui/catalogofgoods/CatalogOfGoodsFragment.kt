@@ -26,8 +26,10 @@ class CatalogOfGoodsFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
+
     @Inject
     lateinit var router: Router
+
     @Inject
     lateinit var screens: IScreens
 
@@ -57,7 +59,7 @@ class CatalogOfGoodsFragment : Fragment() {
                     router.navigateTo(screens.detailsOfGoods(it))
                 }
         }
-        viewModel.observe(viewLifecycleOwner, ::renderData)
+        viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
     }
 
     private fun renderData(appState: AppState) {
@@ -75,6 +77,13 @@ class CatalogOfGoodsFragment : Fragment() {
                     .setMessage(appState.exception.message)
                     .show()
             }
+        }
+    }
+
+    private fun renderBackGroundProcess(isProcessed: Boolean) {
+        binding?.run {
+            backgroundLoadingProcessGroup.visibility =
+                if (isProcessed) View.VISIBLE else View.GONE
         }
     }
 

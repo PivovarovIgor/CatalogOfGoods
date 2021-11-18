@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CatalogOfGoods</string>
+    <string name="background_loading">background loading data from FTP</string>
 </resources>
