@@ -2,6 +2,7 @@ package ru.brauer.catalogofgoods.data
 
 import android.util.Log
 import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.database.GoodsEnt
@@ -15,16 +16,25 @@ class CatalogOfGoodsRepository @Inject constructor(
     private val appDatabase: AppDatabase
 ) :
     IRepository {
+
+    private var disposable: Disposable? = null
+
     override fun getGoods(): Single<List<Goods>> =
         Single.fromCallable {
+            if (disposable?.isDisposed == false) {
+                disposable?.dispose()
+                Log.i("CatalogOfGoodsRepository", "loading is disposed")
+            }
             catalogOfGoodsRetriever
                 .retrieve()
                 .observeOn(Schedulers.io())
-                .subscribe {
+                .subscribe({
                     Log.i("goods", "Before getting on database " + Thread.currentThread().id)
                     appDatabase.goodsDao.insert(it.toDatabaseData())
                     Log.i("goods", "After getting on database " + Thread.currentThread().id)
-                }
+                }, {
+                    throw it
+                }).also { disposable = it }
             appDatabase.goodsDao.getAll().toBusinessData()
         }.subscribeOn(Schedulers.io())
 }
