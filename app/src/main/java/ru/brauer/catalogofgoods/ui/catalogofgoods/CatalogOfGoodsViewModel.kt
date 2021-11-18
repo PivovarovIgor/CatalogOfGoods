@@ -37,7 +37,7 @@ class CatalogOfGoodsViewModel @Inject constructor(
         }
 
         override fun onError(exeption: Throwable) {
-
+            backgroundProcessing.postValue(false)
         }
 
         override fun onComplete() {
