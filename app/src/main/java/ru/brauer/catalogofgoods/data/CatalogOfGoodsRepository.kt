@@ -63,7 +63,11 @@ fun EntityOfCommerceMl.Goods.toDatabaseData(): GoodsEnt =
         photoUrl = photoUrl.firstOrNull() ?: ""
     )
 
-fun EntityOfCommerceMl.Offer.toDatabaseData(): OfferEnt {
+fun EntityOfCommerceMl.Offer.toDatabaseData(): OfferEnt? {
+
+    if (name.isBlank()) {
+        return null
+    }
 
     val separatedId: List<String> = id.split('#', ignoreCase = false, limit = 2)
         .filter { it.isNotBlank() }
