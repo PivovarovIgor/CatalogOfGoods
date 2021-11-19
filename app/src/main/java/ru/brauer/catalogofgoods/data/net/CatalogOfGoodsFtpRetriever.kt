@@ -1,15 +1,14 @@
 package ru.brauer.catalogofgoods.data.net
 
 import android.accounts.NetworkErrorException
-import android.util.Log
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
+import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
-import ru.brauer.catalogofgoods.data.entities.Goods
 import java.io.InputStream
 import javax.inject.Inject
 
@@ -17,8 +16,8 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val commerceMlParser: IXmlParserByRule
 ) : ICatalogOfGoodsRetrieverFromNet {
 
-    override fun retrieve(): Observable<List<Goods>> =
-        Observable.create<List<Goods>> { emitter ->
+    override fun retrieve(): Observable<List<EntityOfCommerceMl>> =
+        Observable.create<List<EntityOfCommerceMl>> { emitter ->
 
             val ftpClient = FTPClient()
             ftpClient.connect(BuildConfig.HOST_ADDRESS)
@@ -44,9 +43,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                         val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
                             ?: throw NetworkErrorException("Not found file '$fileName'")
                         commerceMlParser.parse(inputStream).subscribe({
-                            Log.i("goods", "Before send to database " + Thread.currentThread().id)
                             emitter.onNext(it)
-                            Log.i("goods", "After send to database " + Thread.currentThread().id)
                         }, { emitter.onError(it) },
                             {
                                 inputStream.close()

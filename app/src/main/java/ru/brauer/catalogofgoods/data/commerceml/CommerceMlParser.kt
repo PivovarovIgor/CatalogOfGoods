@@ -5,7 +5,7 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
 import org.xmlpull.v1.XmlPullParser
 import ru.brauer.catalogofgoods.BuildConfig
-import ru.brauer.catalogofgoods.data.entities.Goods
+import java.io.IOException
 import java.io.InputStream
 
 class CommerceMlParser : IXmlParserByRule {
@@ -19,45 +19,96 @@ class CommerceMlParser : IXmlParserByRule {
         private const val TAG_ID = "Ид"
         private const val TAG_NAME = "Наименование"
         private const val TAG_PHOTO_URL = "Картинка"
-
-        private const val CHUNK_OF_DATA = 10
+        private const val TAG_PACKAGE_OF_OFFERS = "ПакетПредложений"
+        private const val TAG_OFFERS = "Предложения"
+        private const val TAG_OFFER = "Предложение"
     }
 
-    override fun parse(inputStream: InputStream): Observable<List<Goods>> =
+    private lateinit var commerceMlEmitter: CommerceInfoEmitter
+
+    override fun parse(inputStream: InputStream): Observable<List<EntityOfCommerceMl>> =
         Observable.create { emitter ->
-            inputStream.use { inputStream ->
+            commerceMlEmitter = CommerceInfoEmitter(emitter)
+            try {
                 val parser: XmlPullParser = Xml.newPullParser()
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
                 parser.setInput(inputStream, null)
                 parser.next()
-                readCommerceInfo(parser, emitter)
-                emitter.onComplete()
+                readCommerceInfo(parser)
+                commerceMlEmitter.complete()
+            } catch (exception: IOException) {
+                commerceMlEmitter.error(exception)
+            } finally {
+                inputStream.close()
             }
         }
 
-    private fun readCommerceInfo(
-        parser: XmlPullParser,
-        emitter: ObservableEmitter<List<Goods>>
-    ) {
-
+    private fun readCommerceInfo(parser: XmlPullParser) {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_COMMERCE_INFO)
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
             }
 
-            if (parser.name == TAG_CATALOG) {
-                readCatalog(parser, emitter)
+            when (parser.name) {
+                TAG_CATALOG -> readCatalog(parser)
+                TAG_PACKAGE_OF_OFFERS -> readPackageOfOffers(parser)
+                else -> skip(parser)
+            }
+        }
+    }
+
+    private fun readPackageOfOffers(parser: XmlPullParser) {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_PACKAGE_OF_OFFERS)
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name == TAG_OFFERS) {
+                readOffers(parser)
             } else {
                 skip(parser)
             }
         }
     }
 
-    private fun readCatalog(
-        parser: XmlPullParser,
-        emitter: ObservableEmitter<List<Goods>>
-    ) {
+    private fun readOffers(parser: XmlPullParser) {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_OFFERS)
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name == TAG_OFFER) {
+                commerceMlEmitter.next(readOffer(parser))
+            } else {
+                skip(parser)
+            }
+        }
+    }
+
+    private fun readOffer(parser: XmlPullParser): EntityOfCommerceMl {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_OFFER)
+
+        var id: String = ""
+        var name: String = ""
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            when (parser.name) {
+                TAG_ID -> id = readPlaintText(parser, TAG_ID)
+                TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
+                else -> skip(parser)
+            }
+        }
+        return EntityOfCommerceMl.Offer(id, name)
+    }
+
+    private fun readCatalog(parser: XmlPullParser) {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_CATALOG)
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -70,43 +121,32 @@ class CommerceMlParser : IXmlParserByRule {
                         stepOutFromCurrentElement(parser)
                     }
                 }
-                TAG_GOODS_MULTITUDE -> readGoodsMultitude(parser, emitter)
+                TAG_GOODS_MULTITUDE -> readGoodsMultitude(parser)
                 else -> skip(parser)
             }
         }
     }
 
-    private fun readGoodsMultitude(
-        parser: XmlPullParser,
-        emitter: ObservableEmitter<List<Goods>>
-    ) {
+    private fun readGoodsMultitude(parser: XmlPullParser) {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_GOODS_MULTITUDE)
-        var result = mutableListOf<Goods>()
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
             }
             if (parser.name == TAG_GOODS) {
-                result += readGoods(parser)
-                if (result.count() >= CHUNK_OF_DATA) {
-                    emitter.onNext(result)
-                    result = mutableListOf()
-                }
+                commerceMlEmitter.next(readGoods(parser))
             } else {
                 skip(parser)
             }
         }
-        if (result.count() > 0) {
-            emitter.onNext(result)
-        }
     }
 
-    private fun readGoods(parser: XmlPullParser): Goods {
+    private fun readGoods(parser: XmlPullParser): EntityOfCommerceMl.Goods {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_GOODS)
 
         var id = ""
         var name = ""
-        var photoUrl = ""
+        val photoUrl = mutableListOf<String>()
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -115,11 +155,11 @@ class CommerceMlParser : IXmlParserByRule {
             when (parser.name) {
                 TAG_ID -> id = readPlaintText(parser, TAG_ID)
                 TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
-                TAG_PHOTO_URL -> photoUrl = readPlaintText(parser, TAG_PHOTO_URL)
+                TAG_PHOTO_URL -> photoUrl += readPlaintText(parser, TAG_PHOTO_URL)
                 else -> skip(parser)
             }
         }
-        return Goods(id, name, photoUrl)
+        return EntityOfCommerceMl.Goods(id, name, photoUrl)
     }
 
     private fun readPlaintText(parser: XmlPullParser, tag: String): String {
@@ -160,4 +200,38 @@ class CommerceMlParser : IXmlParserByRule {
             }
         }
     }
+
+    private class CommerceInfoEmitter(private val emitter: ObservableEmitter<List<EntityOfCommerceMl>>) {
+
+        companion object {
+            private const val CHUNK_OF_DATA = 10
+        }
+
+        private var entitiesOfCommerceMl = mutableListOf<EntityOfCommerceMl>()
+
+        fun next(entityOfCommerceMl: EntityOfCommerceMl) {
+            entitiesOfCommerceMl += entityOfCommerceMl
+            if (entitiesOfCommerceMl.count() == CHUNK_OF_DATA) {
+                push()
+            }
+        }
+
+        fun complete() {
+            push()
+            emitter.onComplete()
+        }
+
+        fun error(exception: Throwable) {
+            push()
+            emitter.onError(exception)
+        }
+
+        private fun push() {
+            if (entitiesOfCommerceMl.isNotEmpty()) {
+                emitter.onNext(entitiesOfCommerceMl)
+                entitiesOfCommerceMl = mutableListOf()
+            }
+        }
+    }
 }
+

@@ -1,4 +1,4 @@
-package ru.brauer.catalogofgoods.data.database
+package ru.brauer.catalogofgoods.data.database.entities
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -6,17 +6,17 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
-interface GoodsDao{
+interface OfferDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(goods: GoodsEnt)
+    fun insert(offers: OfferEnt)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(vararg goods: GoodsEnt)
+    fun insert(vararg offers: OfferEnt)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(goods: List<GoodsEnt>)
+    fun insert(offers: List<OfferEnt>)
 
-    @Query("SELECT * FROM goods")
-    fun getAll(): List<GoodsEnt>
+    @Query("SELECT * FROM offers")
+    fun getAll(): List<OfferEnt>
 }
