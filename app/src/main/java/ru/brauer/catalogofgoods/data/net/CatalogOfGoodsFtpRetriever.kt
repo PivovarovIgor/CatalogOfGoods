@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods.data.net
 
 import android.accounts.NetworkErrorException
+import android.util.Log
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.apache.commons.net.ftp.FTP
@@ -40,23 +41,25 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 val listOfFiles = getListOfFiles(ftpClient)
                 listOfFiles
                     .forEach { fileName ->
+                        Log.i("12345", "file -> $fileName")
                         val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
                             ?: throw NetworkErrorException("Not found file '$fileName'")
-                        commerceMlParser.parse(inputStream).subscribe({
-                            emitter.onNext(it)
-                        }, { emitter.onError(it) },
-                            {
-                                inputStream.close()
-                                if (!ftpClient.completePendingCommand()) {
-                                    ftpClient.logout()
-                                    ftpClient.disconnect()
-                                    emitter.onError(
-                                        NetworkErrorException(
-                                            "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
+                        commerceMlParser.parse(inputStream)
+                            .subscribe({
+                                emitter.onNext(it)
+                            }, { emitter.onError(it) },
+                                {
+                                    inputStream.close()
+                                    if (!ftpClient.completePendingCommand()) {
+                                        ftpClient.logout()
+                                        ftpClient.disconnect()
+                                        emitter.onError(
+                                            NetworkErrorException(
+                                                "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
+                                            )
                                         )
-                                    )
-                                }
-                            })
+                                    }
+                                })
                     }
                 ftpClient.logout()
                 ftpClient.disconnect()

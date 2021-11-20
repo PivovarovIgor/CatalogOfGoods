@@ -36,6 +36,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             catalogOfGoodsRetriever
                 .retrieve()
                 .observeOn(Schedulers.io())
+                .doOnDispose { processingSubject.onComplete() }
                 .subscribe({
                     appDatabase.goodsDao.insert(it.toDatabaseDataListOfGoods())
                     appDatabase.offerDao.insert(it.toDatabaseDataListOfOffer())

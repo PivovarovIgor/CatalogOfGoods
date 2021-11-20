@@ -1,5 +1,7 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -76,6 +78,9 @@ class CatalogOfGoodsViewModel @Inject constructor(
         return repository
             .getGoods(processingLoadingObserver)
             .observeOn(uiScheduler)
+            .doOnDispose {
+                liveDataToObserve.value = AppState.Success(listOf())
+            }
             .subscribe({
                 liveDataToObserve.value = AppState.Success(it)
             }, {
