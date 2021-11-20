@@ -13,6 +13,7 @@ import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
 import ru.brauer.catalogofgoods.data.database.entities.OfferEnt
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
+import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
 import javax.inject.Inject
 
@@ -24,10 +25,12 @@ class CatalogOfGoodsRepository @Inject constructor(
 
     private var disposable: Disposable? = null
 
-    override fun getGoods(processingLoadingObserver: Observer<Boolean>): Single<List<Goods>> =
+    override fun getGoods(processingLoadingObserver: Observer<BackgroundLoadingState.LoadingState>): Single<List<Goods>> =
         Single.fromCallable {
-            val processingSubject: Subject<Boolean> = BehaviorSubject.create()
-            processingSubject.onNext(true)
+            val processingSubject: Subject<BackgroundLoadingState.LoadingState> =
+                BehaviorSubject.create()
+            var count = 0
+            processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
             processingSubject.subscribe(processingLoadingObserver)
             if (disposable?.isDisposed == false) {
                 disposable?.dispose()
@@ -38,8 +41,21 @@ class CatalogOfGoodsRepository @Inject constructor(
                 .observeOn(Schedulers.io())
                 //.doOnDispose { processingSubject.onComplete() }
                 .subscribe({
-                    appDatabase.goodsDao.insert(it.toDatabaseDataListOfGoods())
-                    appDatabase.offerDao.insert(it.toDatabaseDataListOfOffer())
+                    it.toDatabaseDataListOfGoods()
+                        .also { entities ->
+                            count += entities.count()
+                            if (entities.isNotEmpty()) {
+                                appDatabase.goodsDao.insert(entities)
+                            }
+                        }
+                    it.toDatabaseDataListOfOffer()
+                        .also { entities ->
+                            count += entities.count()
+                            if (entities.isNotEmpty()) {
+                                appDatabase.offerDao.insert(entities)
+                            }
+                        }
+                    processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
                 }, {
                     processingSubject.onError(it)
                 }, {

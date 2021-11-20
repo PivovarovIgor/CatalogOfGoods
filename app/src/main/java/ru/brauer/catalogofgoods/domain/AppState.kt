@@ -9,5 +9,4 @@ sealed class AppState {
     class Error(val exception: Throwable) : AppState()
 
     object Loading : AppState()
-
 }

@@ -1,7 +1,5 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,6 +7,7 @@ import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
 import ru.brauer.catalogofgoods.domain.AppState
+import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
 import javax.inject.Inject
 
@@ -20,10 +19,10 @@ class CatalogOfGoodsViewModel @Inject constructor(
     ViewModel() {
 
     private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData()
-    private val backgroundProcessing: MutableLiveData<Boolean> = MutableLiveData()
+    private val backgroundProcessing: MutableLiveData<BackgroundLoadingState> = MutableLiveData()
     private var disposable: Disposable? = null
 
-    private val processingLoadingObserver = object : Observer<Boolean> {
+    private val processingLoadingObserver = object : Observer<BackgroundLoadingState.LoadingState> {
 
         private var processingDisposable: Disposable? = null
 
@@ -34,27 +33,23 @@ class CatalogOfGoodsViewModel @Inject constructor(
             processingDisposable = disposableOnSubscribe
         }
 
-        override fun onNext(processing: Boolean) {
+        override fun onNext(processing: BackgroundLoadingState.LoadingState) {
             backgroundProcessing.postValue(processing)
         }
 
         override fun onError(exeption: Throwable) {
-            backgroundProcessing.postValue(false)
+            backgroundProcessing.postValue(BackgroundLoadingState.Error(exeption))
         }
 
         override fun onComplete() {
-            backgroundProcessing.postValue(false)
+            backgroundProcessing.postValue(BackgroundLoadingState.Complete)
         }
-    }
-
-    init {
-        backgroundProcessing.value = false
     }
 
     fun observe(
         lifecycleOwner: LifecycleOwner,
         renderData: (AppState) -> Unit,
-        renderBackgroundProcessing: ((Boolean) -> Unit)? = null
+        renderBackgroundProcessing: ((backgroundLoadingState: BackgroundLoadingState) -> Unit)? = null
     ) {
         liveDataToObserve.observe(lifecycleOwner, renderData)
         if (liveDataToObserve.value !is AppState.Success
