@@ -4,9 +4,11 @@ import android.util.Xml
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 import ru.brauer.catalogofgoods.BuildConfig
 import java.io.IOException
 import java.io.InputStream
+import java.net.SocketTimeoutException
 
 class CommerceMlParser : IXmlParserByRule {
 
@@ -38,8 +40,6 @@ class CommerceMlParser : IXmlParserByRule {
                 commerceMlEmitter.complete()
             } catch (exception: IOException) {
                 commerceMlEmitter.error(exception)
-            } finally {
-                inputStream.close()
             }
         }
 
@@ -222,7 +222,7 @@ class CommerceMlParser : IXmlParserByRule {
         }
 
         fun error(exception: Throwable) {
-            push()
+            //push()
             emitter.onError(exception)
         }
 

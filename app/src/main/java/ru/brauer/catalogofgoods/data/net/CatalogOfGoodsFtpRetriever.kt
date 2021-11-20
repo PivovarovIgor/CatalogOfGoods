@@ -3,6 +3,7 @@ package ru.brauer.catalogofgoods.data.net
 import android.accounts.NetworkErrorException
 import android.util.Log
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.ObservableEmitter
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
@@ -10,7 +11,6 @@ import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
-import java.io.InputStream
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(
@@ -25,6 +25,8 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
             if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
                 ftpClient.enterLocalActiveMode()
                 ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
+                ftpClient.setDataTimeout(1)
+                //ftpClient.controlKeepAliveReplyTimeout = 100
 
                 val replyCode: Int = ftpClient.replyCode
                 if (!FTPReply.isPositiveCompletion(replyCode)) {
@@ -39,33 +41,46 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                     throw NetworkErrorException("Not found directory '$workDirectory'")
                 }
                 val listOfFiles = getListOfFiles(ftpClient)
-                listOfFiles
-                    .forEach { fileName ->
-                        Log.i("12345", "file -> $fileName")
-                        val inputStream: InputStream = ftpClient.retrieveFileStream(fileName)
-                            ?: throw NetworkErrorException("Not found file '$fileName'")
-                        commerceMlParser.parse(inputStream)
-                            .subscribe({
-                                emitter.onNext(it)
-                            }, { emitter.onError(it) },
-                                {
-                                    inputStream.close()
-                                    if (!ftpClient.completePendingCommand()) {
-                                        ftpClient.logout()
-                                        ftpClient.disconnect()
-                                        emitter.onError(
-                                            NetworkErrorException(
-                                                "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
-                                            )
-                                        )
-                                    }
-                                })
-                    }
+                try {
+                    retrieveFromEachFiles(listOfFiles, ftpClient, emitter)
+                } catch (exception: Throwable) {
+                    emitter.onError(exception)
+                }
                 ftpClient.logout()
                 ftpClient.disconnect()
             }
             emitter.onComplete()
         }.subscribeOn(Schedulers.io())
+
+    private fun retrieveFromEachFiles(
+        listOfFiles: List<String>,
+        ftpClient: FTPClient,
+        emitter: ObservableEmitter<List<EntityOfCommerceMl>>
+    ) = listOfFiles
+        .forEach { fileName ->
+            if (emitter.isDisposed) {
+                return@forEach
+            }
+            Log.i("12345", "file -> $fileName")
+            val inputStream = ftpClient.retrieveFileStream(fileName)
+                ?: throw NetworkErrorException("Not found file '$fileName' Reply code: ${ftpClient.reply}.")
+            inputStream.use {
+                commerceMlParser.parse(inputStream)
+                    .subscribe({ emitter.onNext(it) },
+                        { emitter.onError(it) },
+                        { completeRetrieving(ftpClient) })
+            }
+        }
+
+    private fun completeRetrieving(ftpClient: FTPClient) {
+        if (!ftpClient.completePendingCommand()) {
+            ftpClient.logout()
+            ftpClient.disconnect()
+            throw NetworkErrorException(
+                "Error on complete retrieving file. Reply code: ${ftpClient.replyCode}"
+            )
+        }
+    }
 
     private fun getListOfFiles(
         ftpClient: FTPClient,
