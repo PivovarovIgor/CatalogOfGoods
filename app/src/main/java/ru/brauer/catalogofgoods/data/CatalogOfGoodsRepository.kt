@@ -11,6 +11,7 @@ import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
 import ru.brauer.catalogofgoods.data.database.entities.OfferEnt
+import ru.brauer.catalogofgoods.data.database.entities.PhotoOfGoodsEnt
 import ru.brauer.catalogofgoods.data.database.entities.PriceEnt
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
@@ -47,6 +48,13 @@ class CatalogOfGoodsRepository @Inject constructor(
                             count += entities.count()
                             if (entities.isNotEmpty()) {
                                 appDatabase.goodsDao.insert(entities)
+                            }
+                        }
+                    it.toDatabaseDataListOfPhotos()
+                        .also { entities ->
+                            count += entities.count()
+                            if (entities.isNotEmpty()) {
+                                appDatabase.photoOfGoodsDao.insert(entities)
                             }
                         }
                     it.toDatabaseDataListOfOffer()
@@ -87,6 +95,14 @@ fun EntityOfCommerceMl.Goods.toDatabaseData(): GoodsEnt =
         photoUrl = photoUrl.firstOrNull() ?: ""
     )
 
+fun EntityOfCommerceMl.Goods.getPhotosOfGoodsToDatabaseData(): List<PhotoOfGoodsEnt> =
+    photoUrl.map {
+        PhotoOfGoodsEnt(
+            photoUrl = it,
+            goodsId = this.id
+        )
+    }
+
 fun EntityOfCommerceMl.Offer.toDatabaseData(): OfferEnt? {
 
     if (name.isBlank()) {
@@ -124,10 +140,14 @@ fun List<EntityOfCommerceMl>.toDatabaseDataListOfGoods(): List<GoodsEnt> = mapNo
     (it as? EntityOfCommerceMl.Goods)?.toDatabaseData()
 }
 
+fun List<EntityOfCommerceMl>.toDatabaseDataListOfPhotos(): List<PhotoOfGoodsEnt> = mapNotNull {
+    (it as? EntityOfCommerceMl.Goods)?.getPhotosOfGoodsToDatabaseData()
+}.flatten()
+
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfOffer(): List<OfferEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Offer)?.toDatabaseData()
 }
 
-fun List<EntityOfCommerceMl>.toDatabaseDataListOfPrices(): List<PriceEnt> = mapNotNull{
+fun List<EntityOfCommerceMl>.toDatabaseDataListOfPrices(): List<PriceEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Offer)?.toGetPricesToDatabaseData()
 }.flatten()
