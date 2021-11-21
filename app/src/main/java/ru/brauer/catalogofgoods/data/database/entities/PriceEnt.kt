@@ -4,9 +4,14 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "prices")
+@Entity(
+    tableName = "prices",
+    primaryKeys = [
+        "offer_id",
+        "type_price_id"
+    ]
+)
 data class PriceEnt(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "offer_id", index = true) val offerId: String,
     val presentation: String,
     @ColumnInfo(name = "type_price_id") val typePriceId: String,
