@@ -9,10 +9,7 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
-import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
-import ru.brauer.catalogofgoods.data.database.entities.OfferEnt
-import ru.brauer.catalogofgoods.data.database.entities.PhotoOfGoodsEnt
-import ru.brauer.catalogofgoods.data.database.entities.PriceEnt
+import ru.brauer.catalogofgoods.data.database.entities.*
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
@@ -71,6 +68,13 @@ class CatalogOfGoodsRepository @Inject constructor(
                                 appDatabase.priceDao.insert(entities)
                             }
                         }
+                    it.toDatabaseDataListOfRests()
+                        .also { entities ->
+                            count += entities.count()
+                            if (entities.isNotEmpty()) {
+                                appDatabase.restDao.insert(entities)
+                            }
+                        }
                     processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
                 }, {
                     processingSubject.onError(it)
@@ -126,13 +130,20 @@ fun EntityOfCommerceMl.Offer.toGetPricesToDatabaseData(): List<PriceEnt> =
             presentation = price.name,
             typePriceId = price.typePriceId,
             priceValue = price.price
-                .toBigDecimal()
-                .multiply(BigDecimal.valueOf(100))
-                .toInt(),
+                .toBigDecimalOrNull()
+                ?.multiply(BigDecimal.valueOf(100))
+                ?.toInt() ?: 0,
             currency = price.currency
         )
     }
 
+fun EntityOfCommerceMl.Offer.toGetRestsToDatabaseData(): List<RestEnt> =
+    rests.map { rest ->
+        RestEnt(
+            offerId = this.id,
+            count = rest.count.toIntOrNull() ?: 0
+        )
+    }
 
 fun List<GoodsEnt>.toBusinessData(): List<Goods> = map { it.toBusinessData() }
 
@@ -150,4 +161,8 @@ fun List<EntityOfCommerceMl>.toDatabaseDataListOfOffer(): List<OfferEnt> = mapNo
 
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfPrices(): List<PriceEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Offer)?.toGetPricesToDatabaseData()
+}.flatten()
+
+fun List<EntityOfCommerceMl>.toDatabaseDataListOfRests(): List<RestEnt> = mapNotNull {
+    (it as? EntityOfCommerceMl.Offer)?.toGetRestsToDatabaseData()
 }.flatten()

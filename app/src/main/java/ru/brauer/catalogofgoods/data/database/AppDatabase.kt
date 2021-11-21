@@ -10,13 +10,15 @@ import ru.brauer.catalogofgoods.data.database.entities.*
         GoodsEnt::class,
         PhotoOfGoodsEnt::class,
         OfferEnt::class,
-        PriceEnt::class
+        PriceEnt::class,
+        RestEnt::class
     ],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract val goodsDao: GoodsDao
     abstract val photoOfGoodsDao: PhotoOfGoodsDao
     abstract val offerDao: OfferDao
     abstract val priceDao: PriceDao
+    abstract val restDao: RestDao
 }

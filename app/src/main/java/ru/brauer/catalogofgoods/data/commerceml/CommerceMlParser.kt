@@ -28,6 +28,9 @@ class CommerceMlParser : IXmlParserByRule {
         private const val TAG_TYPE_PRICE_ID = "ИдТипаЦены"
         private const val TAG_PRICE_VALUE = "ЦенаЗаЕдиницу"
         private const val TAG_CURRENCY = "Валюта"
+        private const val TAG_RESTS = "Остатки"
+        private const val TAG_REST = "Остаток"
+        private const val TAG_COUNT = "Количество"
     }
 
     private lateinit var commerceMlEmitter: CommerceInfoEmitter
@@ -98,6 +101,7 @@ class CommerceMlParser : IXmlParserByRule {
         var id = ""
         var name = ""
         var prices = listOf<Price>()
+        var rests = listOf<Rest>()
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -108,10 +112,56 @@ class CommerceMlParser : IXmlParserByRule {
                 TAG_ID -> id = readPlaintText(parser, TAG_ID)
                 TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
                 TAG_PRICES -> prices = readPrices(parser)
+                TAG_RESTS -> rests = readRests(parser)
                 else -> skip(parser)
             }
         }
-        return EntityOfCommerceMl.Offer(id, name, prices)
+        return EntityOfCommerceMl.Offer(
+            id = id,
+            name = name,
+            prices = prices,
+            rests = rests
+        )
+    }
+
+    private fun readRests(parser: XmlPullParser): List<Rest> {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_RESTS)
+
+        val rests = mutableListOf<Rest>()
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name == TAG_REST) {
+                rests += readRest(parser)
+            } else {
+                skip(parser)
+            }
+        }
+
+        return rests
+    }
+
+    private fun readRest(parser: XmlPullParser): Rest {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_REST)
+
+        var count = ""
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name == TAG_COUNT) {
+                count = readPlaintText(parser, TAG_COUNT)
+            } else {
+                skip(parser)
+            }
+        }
+
+        return Rest(count)
     }
 
     private fun readPrices(parser: XmlPullParser): List<Price> {
