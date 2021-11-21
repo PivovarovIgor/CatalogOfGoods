@@ -20,3 +20,18 @@ interface OfferDao {
     @Query("SELECT * FROM offers")
     fun getAll(): List<OfferEnt>
 }
+
+@Dao
+interface PriceDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(prices: PriceEnt)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(vararg prices: PriceEnt)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(prices: List<PriceEnt>)
+
+    @Query("SELECT * FROM prices")
+    fun getAll(): List<PriceEnt>
+}

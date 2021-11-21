@@ -10,6 +10,14 @@ sealed class EntityOfCommerceMl {
 
     data class Offer(
         val id: String,
-        val name: String
+        val name: String,
+        val prices: List<Price>
     ) : EntityOfCommerceMl()
 }
+
+data class Price(
+    val name: String,
+    val typePriceId: String,
+    val price: String,
+    val currency: String
+)

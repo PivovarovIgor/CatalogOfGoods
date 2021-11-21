@@ -11,10 +11,12 @@ import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
 import ru.brauer.catalogofgoods.data.database.entities.OfferEnt
+import ru.brauer.catalogofgoods.data.database.entities.PriceEnt
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
+import java.math.BigDecimal
 import javax.inject.Inject
 
 class CatalogOfGoodsRepository @Inject constructor(
@@ -52,6 +54,13 @@ class CatalogOfGoodsRepository @Inject constructor(
                             count += entities.count()
                             if (entities.isNotEmpty()) {
                                 appDatabase.offerDao.insert(entities)
+                            }
+                        }
+                    it.toDatabaseDataListOfPrices()
+                        .also { entities ->
+                            count += entities.count()
+                            if (entities.isNotEmpty()) {
+                                appDatabase.priceDao.insert(entities)
                             }
                         }
                     processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
@@ -94,6 +103,21 @@ fun EntityOfCommerceMl.Offer.toDatabaseData(): OfferEnt? {
     )
 }
 
+fun EntityOfCommerceMl.Offer.toGetPricesToDatabaseData(): List<PriceEnt> =
+    prices.map { price ->
+        PriceEnt(
+            offerId = this.id,
+            presentation = price.name,
+            typePriceId = price.typePriceId,
+            priceValue = price.price
+                .toBigDecimal()
+                .multiply(BigDecimal.valueOf(100))
+                .toInt(),
+            currency = price.currency
+        )
+    }
+
+
 fun List<GoodsEnt>.toBusinessData(): List<Goods> = map { it.toBusinessData() }
 
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfGoods(): List<GoodsEnt> = mapNotNull {
@@ -103,3 +127,7 @@ fun List<EntityOfCommerceMl>.toDatabaseDataListOfGoods(): List<GoodsEnt> = mapNo
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfOffer(): List<OfferEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Offer)?.toDatabaseData()
 }
+
+fun List<EntityOfCommerceMl>.toDatabaseDataListOfPrices(): List<PriceEnt> = mapNotNull{
+    (it as? EntityOfCommerceMl.Offer)?.toGetPricesToDatabaseData()
+}.flatten()

@@ -4,11 +4,9 @@ import android.util.Xml
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
 import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserException
 import ru.brauer.catalogofgoods.BuildConfig
 import java.io.IOException
 import java.io.InputStream
-import java.net.SocketTimeoutException
 
 class CommerceMlParser : IXmlParserByRule {
 
@@ -24,6 +22,12 @@ class CommerceMlParser : IXmlParserByRule {
         private const val TAG_PACKAGE_OF_OFFERS = "ПакетПредложений"
         private const val TAG_OFFERS = "Предложения"
         private const val TAG_OFFER = "Предложение"
+        private const val TAG_PRICES = "Цены"
+        private const val TAG_PRICE = "Цена"
+        private const val TAG_PRESENTATION = "Представление"
+        private const val TAG_TYPE_PRICE_ID = "ИдТипаЦены"
+        private const val TAG_PRICE_VALUE = "ЦенаЗаЕдиницу"
+        private const val TAG_CURRENCY = "Валюта"
     }
 
     private lateinit var commerceMlEmitter: CommerceInfoEmitter
@@ -91,8 +95,9 @@ class CommerceMlParser : IXmlParserByRule {
     private fun readOffer(parser: XmlPullParser): EntityOfCommerceMl {
         parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_OFFER)
 
-        var id: String = ""
-        var name: String = ""
+        var id = ""
+        var name = ""
+        var prices = listOf<Price>()
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -102,10 +107,59 @@ class CommerceMlParser : IXmlParserByRule {
             when (parser.name) {
                 TAG_ID -> id = readPlaintText(parser, TAG_ID)
                 TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
+                TAG_PRICES -> prices = readPrices(parser)
                 else -> skip(parser)
             }
         }
-        return EntityOfCommerceMl.Offer(id, name)
+        return EntityOfCommerceMl.Offer(id, name, prices)
+    }
+
+    private fun readPrices(parser: XmlPullParser): List<Price> {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_PRICES)
+
+        val prices = mutableListOf<Price>()
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name == TAG_PRICE) {
+                prices += readPrice(parser)
+            } else {
+                skip(parser)
+            }
+        }
+        return prices
+    }
+
+    private fun readPrice(parser: XmlPullParser): Price {
+        parser.require(XmlPullParser.START_TAG, xmlNamespace, TAG_PRICE)
+
+        var presentation = ""
+        var typePriceId = ""
+        var priceValue = ""
+        var currency = ""
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            when (parser.name) {
+                TAG_PRESENTATION -> presentation = readPlaintText(parser, TAG_PRESENTATION)
+                TAG_TYPE_PRICE_ID -> typePriceId = readPlaintText(parser, TAG_TYPE_PRICE_ID)
+                TAG_PRICE_VALUE -> priceValue = readPlaintText(parser, TAG_PRICE_VALUE)
+                TAG_CURRENCY -> currency = readPlaintText(parser, TAG_CURRENCY)
+                else -> skip(parser)
+            }
+        }
+        return Price(
+            name = presentation,
+            typePriceId = typePriceId,
+            price = priceValue,
+            currency = currency
+        )
     }
 
     private fun readCatalog(parser: XmlPullParser) {
@@ -234,4 +288,3 @@ class CommerceMlParser : IXmlParserByRule {
         }
     }
 }
-
