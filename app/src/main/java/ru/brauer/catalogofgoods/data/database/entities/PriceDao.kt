@@ -6,17 +6,16 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
-interface OfferDao {
+interface PriceDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(prices: PriceEnt)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(offers: OfferEnt)
+    fun insert(vararg prices: PriceEnt)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(vararg offers: OfferEnt)
+    fun insert(prices: List<PriceEnt>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(offers: List<OfferEnt>)
-
-    @Query("SELECT * FROM offers")
-    fun getAll(): List<OfferEnt>
+    @Query("SELECT * FROM prices")
+    fun getAll(): List<PriceEnt>
 }
