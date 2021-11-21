@@ -20,20 +20,6 @@ class DataModule {
 
     companion object {
         private const val DB_NAME = "appDatabase.db"
-
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(
-                    """
-CREATE TABLE 'offers'(
-    'id' TEXT NOT NULL, 
-    'name' TEXT NOT NULL,
-    'goods_id' TEXT NOT NULL, 
-    PRIMARY KEY('id'), 
-    FOREIGN KEY('goods_id') REFERENCES goods ('id'))"""
-                )
-            }
-        }
     }
 
     @Singleton
@@ -61,6 +47,6 @@ CREATE TABLE 'offers'(
             AppDatabase::class.java,
             DB_NAME
         )
-            .addMigrations(MIGRATION_1_2)
+            .fallbackToDestructiveMigration()
             .build()
 }

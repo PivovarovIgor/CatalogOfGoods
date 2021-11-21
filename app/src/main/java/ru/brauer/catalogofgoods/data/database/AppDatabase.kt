@@ -1,7 +1,6 @@
 package ru.brauer.catalogofgoods.data.database
 
 
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import ru.brauer.catalogofgoods.data.database.entities.GoodsDao
@@ -14,7 +13,7 @@ import ru.brauer.catalogofgoods.data.database.entities.OfferEnt
         GoodsEnt::class,
         OfferEnt::class
     ],
-    version = 2
+    version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract val goodsDao: GoodsDao

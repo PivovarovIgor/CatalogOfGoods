@@ -204,7 +204,7 @@ class CommerceMlParser : IXmlParserByRule {
     private class CommerceInfoEmitter(private val emitter: ObservableEmitter<List<EntityOfCommerceMl>>) {
 
         companion object {
-            private const val CHUNK_OF_DATA = 10
+            private const val CHUNK_OF_DATA = 100
         }
 
         private var entitiesOfCommerceMl = mutableListOf<EntityOfCommerceMl>()

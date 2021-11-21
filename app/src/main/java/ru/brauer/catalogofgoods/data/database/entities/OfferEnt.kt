@@ -2,16 +2,15 @@ package ru.brauer.catalogofgoods.data.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
+
 @Entity(
-    foreignKeys = [ForeignKey(
-        entity = GoodsEnt::class,
-        parentColumns = ["id"],
-        childColumns = ["goods_id"],
-        onDelete = ForeignKey.NO_ACTION
-    )], tableName = "offers"
+    indices = [
+        Index("goods_id", name = "offers_for_goods_idx")
+    ],
+    tableName = "offers"
 )
 data class OfferEnt(
     @PrimaryKey val id: String,
