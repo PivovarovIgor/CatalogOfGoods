@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import coil.load
+import com.bumptech.glide.Glide
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.FragmentDetailsOfGoodsBinding
@@ -45,10 +45,12 @@ class DetailsOfGoodsFragment : Fragment() {
     private fun renderData() {
         binding?.run {
             goodsName.text = goods.name
-            goodsImage.load(goods.photoUrl) {
-                placeholder(R.drawable.ic_baseline_image_24)
-                error(R.drawable.ic_baseline_image_24)
-            }
+            Glide.with(goodsImage)
+                .load(goods.photoUrl)
+                .placeholder(R.drawable.ic_baseline_image_24)
+                .error(R.drawable.ic_baseline_broken_image_24)
+                .into(goodsImage)
+
         }
     }
 

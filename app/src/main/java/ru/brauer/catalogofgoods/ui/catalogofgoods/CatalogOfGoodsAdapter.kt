@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import com.bumptech.glide.Glide
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
@@ -56,10 +56,11 @@ class CatalogOfGoodsAdapter(
             viewModel.getDataAtPosition(position)
                 ?.let {
                     binding.goodsName.text = it.name
-                    binding.goodsImage.load(it.photoUrl) {
-                        placeholder(R.drawable.ic_baseline_image_24)
-                        error(R.drawable.ic_baseline_image_24)
-                    }
+                    Glide.with(binding.goodsImage)
+                        .load(it.photoUrl)
+                        .placeholder(R.drawable.ic_baseline_image_24)
+                        .error(R.drawable.ic_baseline_broken_image_24)
+                        .into(binding.goodsImage)
                 }
         }
     }
