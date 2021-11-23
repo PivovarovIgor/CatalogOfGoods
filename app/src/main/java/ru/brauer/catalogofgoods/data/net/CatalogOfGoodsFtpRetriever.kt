@@ -64,7 +64,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
             val inputStream = ftpClient.retrieveFileStream(fileName)
                 ?: throw NetworkErrorException("Not found file '$fileName' Reply code: ${ftpClient.reply}.")
             inputStream.use {
-                commerceMlParser.parse(inputStream)
+                commerceMlParser.parse(inputStream, fileName)
                     .subscribe({ emitter.onNext(it) },
                         { emitter.onError(it) },
                         { completeRetrieving(ftpClient) })

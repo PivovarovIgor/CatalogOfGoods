@@ -1,21 +1,22 @@
 package ru.brauer.catalogofgoods.data.glidemodel
 
-import android.content.Context
-import com.bumptech.glide.Glide
+import android.accounts.NetworkErrorException
 import com.bumptech.glide.Priority
-import com.bumptech.glide.Registry
-import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
-import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.signature.ObjectKey
+import org.apache.commons.net.ftp.FTP
+import org.apache.commons.net.ftp.FTPClient
+import org.apache.commons.net.ftp.FTPReply
+import ru.brauer.catalogofgoods.BuildConfig
 import java.io.InputStream
 
 class FtpImageFileModelLoader : ModelLoader<FtpModel, InputStream> {
+
     override fun buildLoadData(
         model: FtpModel,
         width: Int,
@@ -26,7 +27,7 @@ class FtpImageFileModelLoader : ModelLoader<FtpModel, InputStream> {
     }
 
     override fun handles(model: FtpModel): Boolean {
-        return model.ftpClient.listFiles(model.fileName).isNotEmpty()
+        return true
     }
 }
 
@@ -35,7 +36,10 @@ class FtpImageFileDataFetcher(private val model: FtpModel) : DataFetcher<InputSt
     private var inputStream: InputStream? = null
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-        model.ftpClient.retrieveFileStream(model.fileName)
+
+        val ftpClient = FtpClientFactory.create()
+
+        ftpClient.retrieveFileStream(model.fileName)
             .also { inputStream = it }
             .run(callback::onDataReady)
     }
@@ -45,7 +49,7 @@ class FtpImageFileDataFetcher(private val model: FtpModel) : DataFetcher<InputSt
             it.close()
         }
         inputStream = null
-        model.ftpClient.completePendingCommand()
+
     }
 
     override fun cancel() {
@@ -61,10 +65,29 @@ class FtpImageFileDataFetcher(private val model: FtpModel) : DataFetcher<InputSt
     }
 }
 
-@GlideModule
-class MyAppGlideModule : AppGlideModule() {
-    override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
-        registry.prepend(FtpModel::class.java, InputStream::class.java, FtpImageFileModelLoaderFactory())
+object FtpClientFactory {
+    fun create(): FTPClient {
+        val ftpClient = FTPClient()
+        ftpClient.connect(BuildConfig.HOST_ADDRESS)
+        if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
+            ftpClient.enterLocalActiveMode()
+            ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
+            ftpClient.setDataTimeout(10000)
+
+            val replyCode: Int = ftpClient.replyCode
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                ftpClient.disconnect()
+                throw NetworkErrorException("FTP server refused connection. Reply code $replyCode")
+            }
+
+            val workDirectory = BuildConfig.PATH
+            if (!ftpClient.changeWorkingDirectory(workDirectory)) {
+                ftpClient.logout()
+                ftpClient.disconnect()
+                throw NetworkErrorException("Not found directory '$workDirectory'")
+            }
+        }
+        return ftpClient
     }
 }
 
