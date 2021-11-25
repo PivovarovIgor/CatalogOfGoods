@@ -34,7 +34,7 @@ class CachedFtpClientPool : ICachedFtpClientPool {
     }
 
     private fun disconnect(ftpClient: FTPClient) {
-        ftpClient.completePendingCommand()
+        //ftpClient.completePendingCommand()
         ftpClient.logout()
         if (ftpClient.isConnected) {
             ftpClient.disconnect()
@@ -45,8 +45,10 @@ class CachedFtpClientPool : ICachedFtpClientPool {
     }
 
     private fun connect(ftpClient: FTPClient): FTPClient {
-        ftpClient.connect(BuildConfig.HOST_ADDRESS)
-        if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
+        if (!ftpClient.isConnected) {
+            ftpClient.connect(BuildConfig.HOST_ADDRESS)
+        }
+        if (!ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
             throw NetworkErrorException("Can't to login on FTP server")
         }
         ftpClient.enterLocalPassiveMode()
