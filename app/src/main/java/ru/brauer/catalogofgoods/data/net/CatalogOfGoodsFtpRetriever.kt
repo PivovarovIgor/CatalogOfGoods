@@ -11,6 +11,7 @@ import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
+import ru.brauer.catalogofgoods.data.extensions.convertPathOfPhotoRelativelyFileName
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(
@@ -65,22 +66,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 ?: throw NetworkErrorException("Not found file '$fileName' Reply code: ${ftpClient.reply}.")
             inputStream.use {
                 commerceMlParser.parse(inputStream)
-                    .map { entities ->
-                        entities.map { entity ->
-                            val pathName = fileName.dropLastWhile { it != '/' }
-                            if (entity is EntityOfCommerceMl.Goods) {
-                                EntityOfCommerceMl.Goods(
-                                    id = entity.id,
-                                    name = entity.name,
-                                    photoUrl = entity.photoUrl.map { photoUrl ->
-                                        pathName + photoUrl
-                                    }
-                                )
-                            } else {
-                                entity
-                            }
-                        }
-                    }
+                    .map { it.convertPathOfPhotoRelativelyFileName(fileName) }
                     .subscribe({ emitter.onNext(it) },
                         { emitter.onError(it) },
                         { completeRetrieving(ftpClient) })
