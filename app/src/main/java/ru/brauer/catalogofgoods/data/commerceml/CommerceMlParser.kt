@@ -1,5 +1,6 @@
 package ru.brauer.catalogofgoods.data.commerceml
 
+
 import android.util.Xml
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
@@ -34,11 +35,9 @@ class CommerceMlParser : IXmlParserByRule {
     }
 
     private lateinit var commerceMlEmitter: CommerceInfoEmitter
-    private var pathName: String = ""
 
-    override fun parse(inputStream: InputStream, fileName: String): Observable<List<EntityOfCommerceMl>> =
+    override fun parse(inputStream: InputStream): Observable<List<EntityOfCommerceMl>> =
         Observable.create { emitter ->
-            pathName = fileName.dropLastWhile { it != '/' }
             commerceMlEmitter = CommerceInfoEmitter(emitter)
             try {
                 val parser: XmlPullParser = Xml.newPullParser()
@@ -261,7 +260,7 @@ class CommerceMlParser : IXmlParserByRule {
             when (parser.name) {
                 TAG_ID -> id = readPlaintText(parser, TAG_ID)
                 TAG_NAME -> name = readPlaintText(parser, TAG_NAME)
-                TAG_PHOTO_URL -> photoUrl += pathName + readPlaintText(parser, TAG_PHOTO_URL)
+                TAG_PHOTO_URL -> photoUrl += readPlaintText(parser, TAG_PHOTO_URL)
                 else -> skip(parser)
             }
         }
