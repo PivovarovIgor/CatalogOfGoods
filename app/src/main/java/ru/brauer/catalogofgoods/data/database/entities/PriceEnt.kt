@@ -16,5 +16,6 @@ data class PriceEnt(
     val presentation: String,
     @ColumnInfo(name = "type_price_id") val typePriceId: String,
     @ColumnInfo(name = "price_value") val priceValue: Int,
-    val currency: String
+    val currency: String,
+    @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )

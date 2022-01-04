@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "rests")
 data class RestEnt(
     @PrimaryKey @ColumnInfo(name = "offer_id") val offerId: String,
-    val count: Int
+    val count: Int,
+    @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )

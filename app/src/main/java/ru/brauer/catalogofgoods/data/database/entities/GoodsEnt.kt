@@ -9,5 +9,6 @@ import androidx.room.PrimaryKey
 data class GoodsEnt(
     @PrimaryKey val id: String,
     val name: String,
-    @ColumnInfo(name = "photo_url") val photoUrl: String
+    @ColumnInfo(name = "photo_url") val photoUrl: String,
+    @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )

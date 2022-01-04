@@ -22,5 +22,6 @@ import androidx.room.ForeignKey
 )
 data class PhotoOfGoodsEnt(
     @ColumnInfo(name = "photo_url") val photoUrl: String,
-    @ColumnInfo(name = "goods_id") val goodsId: String
+    @ColumnInfo(name = "goods_id") val goodsId: String,
+    @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )

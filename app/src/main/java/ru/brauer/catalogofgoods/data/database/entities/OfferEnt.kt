@@ -9,5 +9,6 @@ import androidx.room.PrimaryKey
 data class OfferEnt(
     @PrimaryKey val id: String,
     val name: String,
-    @ColumnInfo(name = "goods_id", index = true) val goodsId: String
+    @ColumnInfo(name = "goods_id", index = true) val goodsId: String,
+    @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )
