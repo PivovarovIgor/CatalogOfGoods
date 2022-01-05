@@ -18,4 +18,7 @@ interface PriceDao {
 
     @Query("SELECT * FROM prices")
     fun getAll(): List<PriceEnt>
+
+    @Query("DELETE FROM prices WHERE data_time_updated < :dataTime")
+    fun deletePreviouslyUpdatedDates(dataTime: Long)
 }

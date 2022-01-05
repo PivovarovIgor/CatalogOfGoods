@@ -18,4 +18,7 @@ interface RestDao {
 
     @Query("SELECT * FROM rests")
     fun getAll(): List<RestEnt>
+
+    @Query("DELETE FROM rests WHERE data_time_updated < :dataTime")
+    fun deletePreviouslyUpdatedDates(dataTime: Long)
 }

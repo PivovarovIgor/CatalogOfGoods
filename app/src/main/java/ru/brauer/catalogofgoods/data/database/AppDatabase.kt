@@ -13,7 +13,7 @@ import ru.brauer.catalogofgoods.data.database.entities.*
         PriceEnt::class,
         RestEnt::class
     ],
-    version = 2
+    version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract val goodsDao: GoodsDao
@@ -21,4 +21,25 @@ abstract class AppDatabase : RoomDatabase() {
     abstract val offerDao: OfferDao
     abstract val priceDao: PriceDao
     abstract val restDao: RestDao
+
+    private var dataTimeStartCaching: Long = 0
+
+    fun startUpdatingData() {
+        dataTimeStartCaching = TimestampProvider.current()
+    }
+
+    fun endUpdatingData() {
+        dataTimeStartCaching = 0
+    }
+
+    fun deleteNotUpdatedData() {
+
+        if (dataTimeStartCaching > 0) {
+            goodsDao.deletePreviouslyUpdatedDates(dataTimeStartCaching)
+            offerDao.deletePreviouslyUpdatedDates(dataTimeStartCaching)
+            priceDao.deletePreviouslyUpdatedDates(dataTimeStartCaching)
+            restDao.deletePreviouslyUpdatedDates(dataTimeStartCaching)
+        }
+        endUpdatingData()
+    }
 }

@@ -30,6 +30,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             val processingSubject: Subject<BackgroundLoadingState.LoadingState> =
                 BehaviorSubject.create()
             var count = 0
+            var dataTimeStart: Long = 0
             processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
             processingSubject.subscribe(processingLoadingObserver)
             if (disposable?.isDisposed == false) {
@@ -39,6 +40,10 @@ class CatalogOfGoodsRepository @Inject constructor(
             catalogOfGoodsRetriever
                 .retrieve()
                 .observeOn(Schedulers.io())
+                .doOnSubscribe { appDatabase.startUpdatingData() }
+                .doOnComplete { appDatabase.deleteNotUpdatedData() }
+                .doOnError { appDatabase.endUpdatingData() }
+                .doOnDispose { appDatabase.endUpdatingData() }
                 .subscribe({
                     it.toDatabaseDataListOfGoods()
                         .also { entities ->

@@ -19,4 +19,7 @@ interface GoodsDao {
 
     @Query("SELECT * FROM goods")
     fun getAll(): List<GoodsEnt>
+
+    @Query("DELETE FROM goods WHERE data_time_updated < :dataTime")
+    fun deletePreviouslyUpdatedDates(dataTime: Long)
 }
