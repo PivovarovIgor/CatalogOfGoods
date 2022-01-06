@@ -12,6 +12,6 @@ class ViewModelFactory @Inject constructor(
             @JvmSuppressWildcards Provider<ViewModel>>
 ) :
     ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
         viewModels[modelClass]?.get() as T
 }

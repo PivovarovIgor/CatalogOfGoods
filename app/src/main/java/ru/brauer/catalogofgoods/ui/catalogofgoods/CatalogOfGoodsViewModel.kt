@@ -3,6 +3,10 @@ package ru.brauer.catalogofgoods.ui.catalogofgoods
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
@@ -21,6 +25,12 @@ class CatalogOfGoodsViewModel @Inject constructor(
     private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData()
     private val backgroundProcessing: MutableLiveData<BackgroundLoadingState> = MutableLiveData()
     private var disposable: Disposable? = null
+
+    val dataPagingFlow = Pager(
+        config = PagingConfig(pageSize = 20),
+        pagingSourceFactory = { repository.getPagingSource() }
+    ).flow
+        .cachedIn(viewModelScope)
 
     private val processingLoadingObserver = object : Observer<BackgroundLoadingState.LoadingState> {
 
@@ -61,12 +71,6 @@ class CatalogOfGoodsViewModel @Inject constructor(
             backgroundProcessing.observe(lifecycleOwner, it)
         }
     }
-
-    fun getItemCount() = (liveDataToObserve.value as? AppState.Success)?.listOfGoods?.count() ?: 0
-
-    fun getDataAtPosition(position: Int) =
-        (liveDataToObserve.value as? AppState.Success)
-            ?.let { it.listOfGoods.elementAtOrNull(position) }
 
     private fun getData(): Disposable {
         liveDataToObserve.value = AppState.Loading

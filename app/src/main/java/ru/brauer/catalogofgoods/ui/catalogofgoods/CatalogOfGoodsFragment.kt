@@ -9,10 +9,15 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.terrakok.cicerone.Router
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.R
+import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
 import ru.brauer.catalogofgoods.domain.AppState
@@ -57,16 +62,35 @@ class CatalogOfGoodsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initRecyclerView()
+        viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
+    }
+
+    private fun initRecyclerView() {
+
+        val goodsComparator = object : DiffUtil.ItemCallback<Goods>() {
+            override fun areItemsTheSame(oldItem: Goods, newItem: Goods): Boolean =
+                oldItem.id == newItem.id
+
+            override fun areContentsTheSame(oldItem: Goods, newItem: Goods): Boolean =
+                oldItem.id == newItem.id
+        }
+
         App.instance.appComponent.inject(this)
         binding?.run {
+            val pagingAdapter = CatalogOfGoodsAdapter(goodsComparator) {
+                router.navigateTo(screens.detailsOfGoods(it))
+            }
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
-            listOfGoods.adapter =
-                CatalogOfGoodsAdapter(viewModel, viewLifecycleOwner) {
-                    router.navigateTo(screens.detailsOfGoods(it))
+            listOfGoods.adapter = pagingAdapter
+
+            lifecycleScope.launch {
+                viewModel.dataPagingFlow.collectLatest { pagingData ->
+                    pagingAdapter.submitData(pagingData)
                 }
+            }
         }
-        viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
     }
 
     private fun renderData(appState: AppState) {

@@ -1,38 +1,20 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
-import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import org.apache.commons.net.ftp.FTPClient
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.glidemodel.FtpModel
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
-import ru.brauer.catalogofgoods.domain.AppState
 
 class CatalogOfGoodsAdapter(
-    private val viewModel: CatalogOfGoodsViewModel,
-    private val lifecycleOwner: LifecycleOwner,
+    diffCallback: DiffUtil.ItemCallback<Goods>,
     private val itemOpener: (data: Goods) -> Unit
-) :
-    RecyclerView.Adapter<CatalogOfGoodsAdapter.ViewHolder>() {
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        viewModel.observe(lifecycleOwner, ::updateShow)
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private fun updateShow(appState: AppState) {
-        if (appState !is AppState.Error) {
-            notifyDataSetChanged()
-        }
-    }
-
-    override fun getItemCount(): Int = viewModel.getItemCount()
+) : PagingDataAdapter<Goods, CatalogOfGoodsAdapter.ViewHolder>(diffCallback) {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -42,7 +24,7 @@ class CatalogOfGoodsAdapter(
             .let(::ViewHolder)
             .apply {
                 itemView.setOnClickListener { _ ->
-                    viewModel.getDataAtPosition(absoluteAdapterPosition)
+                    getItem(absoluteAdapterPosition)
                         ?.let { itemOpener(it) }
                 }
             }
@@ -55,7 +37,7 @@ class CatalogOfGoodsAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindData(position: Int) {
-            viewModel.getDataAtPosition(position)
+            getItem(position)
                 ?.let {
                     binding.goodsName.text = it.name
                     Glide.with(binding.goodsImage)
