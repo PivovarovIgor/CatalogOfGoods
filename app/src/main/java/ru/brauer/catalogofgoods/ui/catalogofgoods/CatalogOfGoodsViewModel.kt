@@ -68,17 +68,17 @@ class CatalogOfGoodsViewModel @Inject constructor(
     }
 
     private fun getData(): Disposable {
-        liveDataToObserve.value = AppState.Loading
+        liveDataToObserve.postValue(AppState.Loading)
         return repository
             .getGoods(processingLoadingObserver)
             .observeOn(uiScheduler)
             .doOnDispose {
-                liveDataToObserve.value = AppState.Success(listOf())
+                liveDataToObserve.postValue(AppState.Success(listOf()))
             }
             .subscribe({
-                liveDataToObserve.value = AppState.Success(it)
+                liveDataToObserve.postValue(AppState.Success(it))
             }, {
-                liveDataToObserve.value = AppState.Error(it)
+                liveDataToObserve.postValue(AppState.Error(it))
             })
     }
 }

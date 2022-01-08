@@ -11,7 +11,7 @@ import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
-import ru.brauer.catalogofgoods.data.extensions.convertPathOfPhotoRelativelyFileName
+import ru.brauer.catalogofgoods.extensions.convertPathOfPhotoRelativelyFileName
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(

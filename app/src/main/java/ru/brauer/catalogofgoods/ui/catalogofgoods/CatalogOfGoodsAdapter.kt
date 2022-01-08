@@ -5,11 +5,9 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
-import ru.brauer.catalogofgoods.data.glidemodel.FtpModel
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
+import ru.brauer.catalogofgoods.extensions.loadFirstImage
 
 class CatalogOfGoodsAdapter(
     diffCallback: DiffUtil.ItemCallback<Goods>,
@@ -38,14 +36,13 @@ class CatalogOfGoodsAdapter(
 
         fun bindData(position: Int) {
             getItem(position)
-                ?.let {
-                    binding.goodsName.text = it.name
-                    Glide.with(binding.goodsImage)
-                        .load(FtpModel(it.photoUrl))
-                        .placeholder(R.drawable.ic_baseline_image_24)
-                        .error(R.drawable.ic_baseline_broken_image_24)
-                        .into(binding.goodsImage)
-                }
+                ?.let { goods ->
+                    binding.goodsName.text = goods.name
+                    binding.goodsImage.loadFirstImage(goods.listOfPhotosUri)
+                } ?: let {
+                binding.goodsName.text = "---"
+                binding.goodsImage.background = null
+            }
         }
     }
 }

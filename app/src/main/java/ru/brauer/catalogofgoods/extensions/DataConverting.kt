@@ -1,4 +1,4 @@
-package ru.brauer.catalogofgoods.data.extensions
+package ru.brauer.catalogofgoods.extensions
 
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 

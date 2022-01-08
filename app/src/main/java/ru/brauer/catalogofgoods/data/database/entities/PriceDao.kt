@@ -21,4 +21,7 @@ interface PriceDao {
 
     @Query("DELETE FROM prices WHERE data_time_updated < :dataTime")
     fun deletePreviouslyUpdatedDates(dataTime: Long)
+
+    @Query("SELECT * FROM prices WHERE offer_id IN (:offersId) AND type_price_id = :idOfMainPriceType")
+    fun getPricesByOffersId(offersId: List<String>, idOfMainPriceType: String): List<PriceEnt>
 }

@@ -19,4 +19,7 @@ interface PhotoOfGoodsDao {
 
     @Query("SELECT * FROM photos_of_goods")
     fun getAll(): List<PhotoOfGoodsEnt>
+
+    @Query("SELECT * FROM photos_of_goods WHERE goods_id = :goodsId")
+    fun getPhotosByGoodsId(goodsId: String): List<PhotoOfGoodsEnt>
 }

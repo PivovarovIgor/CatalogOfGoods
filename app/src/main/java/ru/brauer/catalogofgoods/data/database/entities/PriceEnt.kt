@@ -18,4 +18,14 @@ data class PriceEnt(
     @ColumnInfo(name = "price_value") val priceValue: Int,
     val currency: String,
     @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
-)
+) {
+    companion object {
+        fun empty() = PriceEnt(
+            offerId = "",
+            presentation = "",
+            typePriceId = "",
+            priceValue = 0,
+            currency = ""
+        )
+    }
+}

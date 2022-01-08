@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
-import ru.brauer.catalogofgoods.data.extensions.convertPathOfPhotoRelativelyFileName
+import ru.brauer.catalogofgoods.extensions.convertPathOfPhotoRelativelyFileName
 
 class MapperTest {
 

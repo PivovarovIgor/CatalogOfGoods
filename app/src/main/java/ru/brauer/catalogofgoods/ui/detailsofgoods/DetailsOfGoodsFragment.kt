@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.FragmentDetailsOfGoodsBinding
+import ru.brauer.catalogofgoods.extensions.loadFirstImage
 
 class DetailsOfGoodsFragment : Fragment() {
 
@@ -45,12 +46,7 @@ class DetailsOfGoodsFragment : Fragment() {
     private fun renderData() {
         binding?.run {
             goodsName.text = goods.name
-            Glide.with(goodsImage)
-                .load(goods.photoUrl)
-                .placeholder(R.drawable.ic_baseline_image_24)
-                .error(R.drawable.ic_baseline_broken_image_24)
-                .into(goodsImage)
-
+            goodsImage.loadFirstImage(goods.listOfPhotosUri)
         }
     }
 

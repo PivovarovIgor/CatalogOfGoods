@@ -22,4 +22,7 @@ interface OfferDao {
 
     @Query("DELETE FROM offers WHERE data_time_updated < :dataTime")
     fun deletePreviouslyUpdatedDates(dataTime: Long)
+
+    @Query("SELECT * FROM offers WHERE goods_id = :goodsId")
+    fun getOffersByGoodsId(goodsId: String): List<OfferEnt>
 }

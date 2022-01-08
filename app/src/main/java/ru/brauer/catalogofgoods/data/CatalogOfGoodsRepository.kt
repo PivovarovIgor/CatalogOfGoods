@@ -1,6 +1,5 @@
 package ru.brauer.catalogofgoods.data
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -11,12 +10,16 @@ import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.database.entities.*
 import ru.brauer.catalogofgoods.data.entities.Goods
+import ru.brauer.catalogofgoods.data.entities.Offer
+import ru.brauer.catalogofgoods.data.entities.Price
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
@@ -36,12 +39,10 @@ class CatalogOfGoodsRepository @Inject constructor(
             val processingSubject: Subject<BackgroundLoadingState.LoadingState> =
                 BehaviorSubject.create()
             var count = 0
-            var dataTimeStart: Long = 0
             processingSubject.onNext(BackgroundLoadingState.LoadingState(count))
             processingSubject.subscribe(processingLoadingObserver)
             if (disposable?.isDisposed == false) {
                 disposable?.dispose()
-                Log.i("CatalogOfGoodsRepository", "loading is disposed")
             }
             catalogOfGoodsRetriever
                 .retrieve()
@@ -92,20 +93,22 @@ class CatalogOfGoodsRepository @Inject constructor(
                 }, {
                     processingSubject.onComplete()
                 }).also { disposable = it }
-            appDatabase.goodsDao.getAll().toBusinessData()
+            appDatabase.goodsDao.getAll().toBusinessData(appDatabase)
         }.subscribeOn(Schedulers.io())
 
     override fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>> =
         Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
-                maxSize = MAX_SIZE_CACHING_OF_PAGING
+                maxSize = MAX_SIZE_CACHING_OF_PAGING,
             ),
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
             .map { pagingData ->
                 pagingData.map {
-                    it.toBusinessData()
+                    withContext(Dispatchers.IO) {
+                        it.toBusinessData(appDatabase)
+                    }
                 }
             }
 
@@ -115,12 +118,53 @@ class CatalogOfGoodsRepository @Inject constructor(
     }
 }
 
-fun GoodsEnt.toBusinessData(): Goods =
+const val MAIN_PRICE_TYPE = ""
+
+fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods =
     Goods(
         id = id,
         name = name,
-        photoUrl = photoUrl
+        listOfPhotosUri = appDataBase.photoOfGoodsDao
+            .getPhotosByGoodsId(id)
+            .toBusinessData(),
+        offers = appDataBase.offerDao
+            .getOffersByGoodsId(id)
+            .toBusinessData(appDataBase)
     )
+
+private fun List<OfferEnt>.toBusinessData(appDataBase: AppDatabase): List<Offer> {
+    val listOfRests = appDataBase.restDao
+        .getRestsByOffersId(this.map { it.id })
+    val listOfPrices = appDataBase.priceDao
+        .getPricesByOffersId(this.map { it.id }, MAIN_PRICE_TYPE)
+    return this.map { it.toBusinessData(listOfRests, listOfPrices) }
+}
+
+private fun OfferEnt.toBusinessData(listOfRests: List<RestEnt>, listOfPrices: List<PriceEnt>) =
+    Offer(
+        id = this.id,
+        name = this.name,
+        stock = listOfRests
+            .filter { it.offerId == this.id }
+            .sumOf { it.count },
+        price = (listOfPrices
+            .let { listOfPricesEnt ->
+                listOfPricesEnt.find { it.offerId == this.id }
+                    ?: PriceEnt.empty()
+            }
+            .toBusinessData())
+    )
+
+private fun PriceEnt.toBusinessData(): Price =
+    Price(
+        presentation = this.presentation,
+        priceValue = this.priceValue,
+        currency = this.currency
+    )
+
+@JvmName("toBusinessDataPhotoOfGoodsEnt")
+private fun List<PhotoOfGoodsEnt>.toBusinessData(): List<String> =
+    this.map { it.photoUrl }
 
 fun EntityOfCommerceMl.Goods.toDatabaseData(): GoodsEnt =
     GoodsEnt(
@@ -175,7 +219,9 @@ fun EntityOfCommerceMl.Offer.toGetRestsToDatabaseData(): List<RestEnt> =
         )
     }
 
-fun List<GoodsEnt>.toBusinessData(): List<Goods> = map { it.toBusinessData() }
+@JvmName("toBusinessDataGoodsEnt")
+fun List<GoodsEnt>.toBusinessData(appDatabase: AppDatabase): List<Goods> =
+    map { it.toBusinessData(appDatabase) }
 
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfGoods(): List<GoodsEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Goods)?.toDatabaseData()
