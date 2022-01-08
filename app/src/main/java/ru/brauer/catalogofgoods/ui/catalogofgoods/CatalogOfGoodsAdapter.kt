@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
 import ru.brauer.catalogofgoods.extensions.loadFirstImage
+import java.math.BigDecimal
 
 class CatalogOfGoodsAdapter(
     diffCallback: DiffUtil.ItemCallback<Goods>,
@@ -39,6 +40,13 @@ class CatalogOfGoodsAdapter(
                 ?.let { goods ->
                     binding.goodsName.text = goods.name
                     binding.goodsImage.loadFirstImage(goods.listOfPhotosUri)
+                    binding.price.text = "Price: ${
+                        goods.offers.maxOf {
+                            it.price.priceValue.toBigDecimal().divide(
+                                BigDecimal.valueOf(100)
+                            )
+                        }
+                    } In stock: ${goods.offers.sumOf { it.stock }}"
                 } ?: let {
                 binding.goodsName.text = "---"
                 binding.goodsImage.background = null

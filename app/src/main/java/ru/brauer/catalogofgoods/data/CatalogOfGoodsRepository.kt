@@ -118,7 +118,7 @@ class CatalogOfGoodsRepository @Inject constructor(
     }
 }
 
-const val MAIN_PRICE_TYPE = ""
+const val MAIN_PRICE_TYPE = "fdf5831f-8b8c-11e9-80f4-005056912b25"
 
 fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods =
     Goods(
