@@ -17,9 +17,6 @@ interface OfferDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(offers: List<OfferEnt>)
 
-    @Query("SELECT * FROM offers")
-    fun getAll(): List<OfferEnt>
-
     @Query("DELETE FROM offers WHERE data_time_updated < :dataTime")
     fun deletePreviouslyUpdatedDates(dataTime: Long)
 

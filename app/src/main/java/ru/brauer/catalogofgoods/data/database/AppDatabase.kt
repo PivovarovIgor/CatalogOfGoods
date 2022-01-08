@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods.data.database
 
 
+import android.util.Log
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import ru.brauer.catalogofgoods.data.database.entities.*

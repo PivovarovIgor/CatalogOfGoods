@@ -16,9 +16,6 @@ interface PriceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(prices: List<PriceEnt>)
 
-    @Query("SELECT * FROM prices")
-    fun getAll(): List<PriceEnt>
-
     @Query("DELETE FROM prices WHERE data_time_updated < :dataTime")
     fun deletePreviouslyUpdatedDates(dataTime: Long)
 

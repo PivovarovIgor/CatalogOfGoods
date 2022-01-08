@@ -93,7 +93,7 @@ class CatalogOfGoodsRepository @Inject constructor(
                 }, {
                     processingSubject.onComplete()
                 }).also { disposable = it }
-            appDatabase.goodsDao.getAll().toBusinessData(appDatabase)
+            listOf<Goods>() // TODO
         }.subscribeOn(Schedulers.io())
 
     override fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>> =
