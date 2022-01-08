@@ -1,13 +1,18 @@
 package ru.brauer.catalogofgoods.data
 
 import android.util.Log
-import androidx.paging.PagingSource
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.database.entities.*
@@ -90,7 +95,19 @@ class CatalogOfGoodsRepository @Inject constructor(
             appDatabase.goodsDao.getAll().toBusinessData()
         }.subscribeOn(Schedulers.io())
 
-    override fun getPagingSource(): PagingSource<Int, GoodsEnt> = appDatabase.goodsDao.getPage()
+    override fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = 6,
+                maxSize = 24
+            ),
+            pagingSourceFactory = { appDatabase.goodsDao.getPage() }
+        ).flow
+            .map { pagingData ->
+                pagingData.map {
+                    it.toBusinessData()
+                }
+            }
 }
 
 fun GoodsEnt.toBusinessData(): Goods =
