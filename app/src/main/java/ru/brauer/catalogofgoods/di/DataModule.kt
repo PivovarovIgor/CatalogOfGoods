@@ -1,8 +1,6 @@
 package ru.brauer.catalogofgoods.di
 
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import ru.brauer.catalogofgoods.App

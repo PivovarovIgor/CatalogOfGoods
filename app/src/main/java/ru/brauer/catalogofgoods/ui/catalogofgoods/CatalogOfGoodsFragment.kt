@@ -73,7 +73,7 @@ class CatalogOfGoodsFragment : Fragment() {
                 oldItem.id == newItem.id
 
             override fun areContentsTheSame(oldItem: Goods, newItem: Goods): Boolean =
-                oldItem.id == newItem.id
+                oldItem == newItem
         }
 
         App.instance.appComponent.inject(this)

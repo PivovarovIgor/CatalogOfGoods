@@ -7,9 +7,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import androidx.paging.map
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.flow.map
+import ru.brauer.catalogofgoods.data.toBusinessData
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
@@ -27,9 +30,17 @@ class CatalogOfGoodsViewModel @Inject constructor(
     private var disposable: Disposable? = null
 
     val dataPagingFlow = Pager(
-        config = PagingConfig(pageSize = 20),
+        config = PagingConfig(
+            pageSize = 6,
+            maxSize = 24
+        ),
         pagingSourceFactory = { repository.getPagingSource() }
     ).flow
+        .map { pagingData ->
+            pagingData.map {
+                it.toBusinessData()
+            }
+        }
         .cachedIn(viewModelScope)
 
     private val processingLoadingObserver = object : Observer<BackgroundLoadingState.LoadingState> {

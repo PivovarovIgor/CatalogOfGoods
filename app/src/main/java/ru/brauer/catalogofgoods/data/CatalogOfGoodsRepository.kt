@@ -1,7 +1,7 @@
 package ru.brauer.catalogofgoods.data
 
 import android.util.Log
-import androidx.paging.rxjava3.RxPagingSource
+import androidx.paging.PagingSource
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
@@ -10,7 +10,6 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.database.AppDatabase
-import ru.brauer.catalogofgoods.data.database.PagingLocalSource
 import ru.brauer.catalogofgoods.data.database.entities.*
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
@@ -91,7 +90,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             appDatabase.goodsDao.getAll().toBusinessData()
         }.subscribeOn(Schedulers.io())
 
-    override fun getPagingSource(): RxPagingSource<Int, Goods> = PagingLocalSource(appDatabase)
+    override fun getPagingSource(): PagingSource<Int, GoodsEnt> = appDatabase.goodsDao.getPage()
 }
 
 fun GoodsEnt.toBusinessData(): Goods =
