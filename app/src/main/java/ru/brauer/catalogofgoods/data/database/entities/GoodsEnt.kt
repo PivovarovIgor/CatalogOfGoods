@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "goods")
 data class GoodsEnt(
     @PrimaryKey val id: String,
-    val name: String,
+    @ColumnInfo(name = "name", index = true) val name: String,
     @ColumnInfo(name = "photo_url") val photoUrl: String,
     @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
 )

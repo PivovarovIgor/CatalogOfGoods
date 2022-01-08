@@ -98,8 +98,8 @@ class CatalogOfGoodsRepository @Inject constructor(
     override fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>> =
         Pager(
             config = PagingConfig(
-                pageSize = 6,
-                maxSize = 24
+                pageSize = PAGE_SIZE,
+                maxSize = MAX_SIZE_CACHING_OF_PAGING
             ),
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
@@ -108,6 +108,11 @@ class CatalogOfGoodsRepository @Inject constructor(
                     it.toBusinessData()
                 }
             }
+
+    companion object {
+        private const val PAGE_SIZE = 30
+        private const val MAX_SIZE_CACHING_OF_PAGING = PAGE_SIZE * 3
+    }
 }
 
 fun GoodsEnt.toBusinessData(): Goods =
