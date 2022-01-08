@@ -1,3 +1,5 @@
+When developing, the following was used:
+
 1.architecture components
 - View binding
 - ViewModel
