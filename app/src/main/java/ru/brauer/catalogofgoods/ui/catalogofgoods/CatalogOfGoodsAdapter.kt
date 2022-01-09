@@ -41,11 +41,11 @@ class CatalogOfGoodsAdapter(
                     binding.goodsName.text = goods.name
                     binding.goodsImage.loadFirstImage(goods.listOfPhotosUri)
                     binding.price.text = "Price: ${
-                        goods.offers.maxOf {
+                        goods.offers.maxOfOrNull {
                             it.price.priceValue.toBigDecimal().divide(
                                 BigDecimal.valueOf(100)
                             )
-                        }
+                        } ?: "---"
                     } In stock: ${goods.offers.sumOf { it.stock }}"
                 } ?: let {
                 binding.goodsName.text = "---"
