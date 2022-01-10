@@ -120,8 +120,16 @@ class CatalogOfGoodsRepository @Inject constructor(
 
 const val MAIN_PRICE_TYPE = "fdf5831f-8b8c-11e9-80f4-005056912b25"
 
-fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods =
-    Goods(
+fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
+
+    val offers: List<OfferEnt> = appDataBase.offerDao.getOffersByGoodsId(id)
+    val listOfOfferId: List<String> = offers.map { it.id }
+    val pricesEntOfOffer: List<PriceEnt> =
+        appDataBase.priceDao.getPricesByOffersId(listOfOfferId, MAIN_PRICE_TYPE)
+    val restsEntOfOffer: List<RestEnt> =
+        appDataBase.restDao.getRestsByOffersId(listOfOfferId)
+
+    return Goods(
         id = id,
         name = name,
         listOfPhotosUri = appDataBase.photoOfGoodsDao
@@ -129,16 +137,22 @@ fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods =
             .toBusinessData(),
         offers = appDataBase.offerDao
             .getOffersByGoodsId(id)
-            .toBusinessData(appDataBase)
+            .toBusinessData(pricesEntOfOffer, restsEntOfOffer),
+        maxPricePresent = pricesEntOfOffer
+            .filter { it.priceValue != 0 }
+            .maxOfOrNull { it.priceValue }
+            ?.let { maxPriceValue ->
+                pricesEntOfOffer.find { it.priceValue == maxPriceValue }?.presentation
+            }
+            ?: Goods.EMPTY_PRICE,
+        stock = restsEntOfOffer.sumOf { it.count }
     )
-
-private fun List<OfferEnt>.toBusinessData(appDataBase: AppDatabase): List<Offer> {
-    val listOfRests = appDataBase.restDao
-        .getRestsByOffersId(this.map { it.id })
-    val listOfPrices = appDataBase.priceDao
-        .getPricesByOffersId(this.map { it.id }, MAIN_PRICE_TYPE)
-    return this.map { it.toBusinessData(listOfRests, listOfPrices) }
 }
+
+private fun List<OfferEnt>.toBusinessData(
+    listOfPrices: List<PriceEnt>,
+    listOfRests: List<RestEnt>
+): List<Offer> = map { it.toBusinessData(listOfRests, listOfPrices) }
 
 private fun OfferEnt.toBusinessData(listOfRests: List<RestEnt>, listOfPrices: List<PriceEnt>) =
     Offer(

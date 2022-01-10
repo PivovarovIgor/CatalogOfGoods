@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
 import ru.brauer.catalogofgoods.extensions.loadFirstImage
-import java.math.BigDecimal
 
 class CatalogOfGoodsAdapter(
     diffCallback: DiffUtil.ItemCallback<Goods>,
@@ -35,21 +35,22 @@ class CatalogOfGoodsAdapter(
     inner class ViewHolder(private val binding: ItemGoodsBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bindData(position: Int) {
+        fun bindData(position: Int) = with(binding) {
             getItem(position)
                 ?.let { goods ->
-                    binding.goodsName.text = goods.name
-                    binding.goodsImage.loadFirstImage(goods.listOfPhotosUri)
-                    binding.price.text = "Price: ${
-                        goods.offers.maxOfOrNull {
-                            it.price.priceValue.toBigDecimal().divide(
-                                BigDecimal.valueOf(100)
-                            )
-                        } ?: "---"
-                    } In stock: ${goods.offers.sumOf { it.stock }}"
+                    goodsName.text = goods.name
+                    goodsImage.loadFirstImage(goods.listOfPhotosUri)
+                    price.text = itemView.resources.getString(
+                        R.string.price,
+                        goods.maxPricePresent,
+                    )
+                    stock.text = itemView.resources.getString(
+                        R.string.stock,
+                        goods.stock,
+                    )
                 } ?: let {
-                binding.goodsName.text = "---"
-                binding.goodsImage.background = null
+                goodsName.text = "---"
+                goodsImage.background = null
             }
         }
     }

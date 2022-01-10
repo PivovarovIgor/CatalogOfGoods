@@ -3,4 +3,9 @@
     <string name="background_loading">background loading data from FTP (%d)</string>
     <string name="app_state_error">State error</string>
     <string name="app_backgroung_error">Background error</string>
+
+<!--    Item of goods list-->
+    <string name="price">Price: %s</string>
+    <string name="stock">In stock: %d</string>
+
 </resources>
