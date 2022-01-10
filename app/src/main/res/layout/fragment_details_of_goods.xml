@@ -16,16 +16,15 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="some title of goods" />
 
-    <ImageView
-        android:id="@+id/goods_image"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_of_details"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintDimensionRatio="w,1:1"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/goods_name" />
+        app:layout_constraintTop_toBottomOf="@id/goods_name"
+        tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

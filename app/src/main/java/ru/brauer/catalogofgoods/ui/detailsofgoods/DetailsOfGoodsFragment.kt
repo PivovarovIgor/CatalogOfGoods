@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
@@ -46,7 +47,9 @@ class DetailsOfGoodsFragment : Fragment() {
     private fun renderData() {
         binding?.run {
             goodsName.text = goods.name
-            goodsImage.loadFirstImage(goods.listOfPhotosUri)
+            listOfDetails.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+            listOfDetails.adapter = DetailsOfGoodsAdapter(goods)
+            listOfDetails.adapter?.notifyDataSetChanged()
         }
     }
 
