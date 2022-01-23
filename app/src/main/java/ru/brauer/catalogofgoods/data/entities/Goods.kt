@@ -13,7 +13,14 @@ data class Goods(
     val stock: Int
 ) : Parcelable {
 
-    constructor(name: String, photoUrl: String) : this("", name, listOf(photoUrl), listOf(), EMPTY_PRICE, 0)
+    constructor(name: String, photoUrl: String) : this(
+        "",
+        name,
+        listOf(photoUrl),
+        listOf(),
+        EMPTY_PRICE,
+        0
+    )
 
     companion object {
         const val EMPTY_PRICE = "---"
