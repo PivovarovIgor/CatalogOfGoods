@@ -1,9 +1,6 @@
 package ru.brauer.catalogofgoods.data
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+import androidx.paging.*
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
@@ -101,6 +98,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
                 maxSize = MAX_SIZE_CACHING_OF_PAGING,
+                prefetchDistance = PREFETCH_DISTANCE_SIZE
             ),
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
@@ -110,11 +108,13 @@ class CatalogOfGoodsRepository @Inject constructor(
                         it.toBusinessData(appDatabase)
                     }
                 }
+                    .filter { it.stock > 0 }
             }
 
     companion object {
-        private const val PAGE_SIZE = 30
-        private const val MAX_SIZE_CACHING_OF_PAGING = PAGE_SIZE * 3
+        private const val PAGE_SIZE = 20
+        private const val PREFETCH_DISTANCE_SIZE = PAGE_SIZE * 6
+        private const val MAX_SIZE_CACHING_OF_PAGING = PAGE_SIZE + PREFETCH_DISTANCE_SIZE * 2
     }
 }
 
