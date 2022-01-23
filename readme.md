@@ -8,7 +8,7 @@ When developing, the following was used:
 - Paging 3
 
 2.dependence injection
-- Dagger 3
+- Dagger 2
 
 3.RxJava
 
