@@ -8,5 +8,5 @@ import ru.brauer.catalogofgoods.data.entities.Goods
 
 interface IRepository {
     fun getGoods(processingLoadingObserver: Observer<BackgroundLoadingState.LoadingState>): Single<List<Goods>>
-    fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>>
+    fun getPagingFlowFromLocalSource(filter: (goods: Goods) -> Boolean): Flow<PagingData<Goods>>
 }

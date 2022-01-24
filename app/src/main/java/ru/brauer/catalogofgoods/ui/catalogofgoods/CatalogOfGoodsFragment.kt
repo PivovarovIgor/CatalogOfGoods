@@ -2,9 +2,12 @@ package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -42,6 +45,20 @@ class CatalogOfGoodsFragment : Fragment() {
     @Inject
     lateinit var screens: IScreens
 
+    private val goodsComparator = object : DiffUtil.ItemCallback<Goods>() {
+        override fun areItemsTheSame(oldItem: Goods, newItem: Goods): Boolean =
+            oldItem.id == newItem.id
+
+        override fun areContentsTheSame(oldItem: Goods, newItem: Goods): Boolean =
+            oldItem == newItem
+    }
+
+    private val pagingAdapter: CatalogOfGoodsAdapter by lazy {
+        CatalogOfGoodsAdapter(goodsComparator) {
+            router.navigateTo(screens.detailsOfGoods(it))
+        }
+    }
+
     private val viewModel: CatalogOfGoodsViewModel by lazy {
         ViewModelProvider(
             this@CatalogOfGoodsFragment,
@@ -64,23 +81,20 @@ class CatalogOfGoodsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
+        Handler(Looper.myLooper()!!).postDelayed(
+            {
+                viewModel.setFilterOnStock = true
+                Toast.makeText(context, "applied the filter on in stock", Toast.LENGTH_LONG).show()
+                pagingAdapter.refresh()
+            },
+            10_000L
+        )
     }
 
     private fun initRecyclerView() {
 
-        val goodsComparator = object : DiffUtil.ItemCallback<Goods>() {
-            override fun areItemsTheSame(oldItem: Goods, newItem: Goods): Boolean =
-                oldItem.id == newItem.id
-
-            override fun areContentsTheSame(oldItem: Goods, newItem: Goods): Boolean =
-                oldItem == newItem
-        }
-
         App.instance.appComponent.inject(this)
         binding?.run {
-            val pagingAdapter = CatalogOfGoodsAdapter(goodsComparator) {
-                router.navigateTo(screens.detailsOfGoods(it))
-            }
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
             listOfGoods.adapter = pagingAdapter

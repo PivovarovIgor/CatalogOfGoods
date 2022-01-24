@@ -93,12 +93,10 @@ class CatalogOfGoodsRepository @Inject constructor(
             listOf<Goods>() // TODO
         }.subscribeOn(Schedulers.io())
 
-    override fun getPagingFlowFromLocalSource(): Flow<PagingData<Goods>> =
+    override fun getPagingFlowFromLocalSource(filter: (goods: Goods) -> Boolean): Flow<PagingData<Goods>> =
         Pager(
             config = PagingConfig(
-                pageSize = PAGE_SIZE,
-                maxSize = MAX_SIZE_CACHING_OF_PAGING,
-                prefetchDistance = PREFETCH_DISTANCE_SIZE
+                pageSize = PAGE_SIZE
             ),
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
@@ -108,13 +106,11 @@ class CatalogOfGoodsRepository @Inject constructor(
                         it.toBusinessData(appDatabase)
                     }
                 }
-                    .filter { it.stock > 0 }
+                    .filter { filter(it) }
             }
 
     companion object {
         private const val PAGE_SIZE = 20
-        private const val PREFETCH_DISTANCE_SIZE = PAGE_SIZE * 6
-        private const val MAX_SIZE_CACHING_OF_PAGING = PAGE_SIZE + PREFETCH_DISTANCE_SIZE * 2
     }
 }
 
