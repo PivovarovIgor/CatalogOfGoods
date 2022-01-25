@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             router.replaceScreen(screens.catalogOfGoods())
         }
+        setSupportActionBar(binding.appToolBar)
     }
 
     override fun onResume() {

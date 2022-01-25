@@ -8,4 +8,8 @@
     <string name="price">Price: %s</string>
     <string name="stock">In stock: %d</string>
 
+<!--    searchable-->
+    <string name="search_hint">search goods</string>
+    <string name="search_goods">Search goods</string>
+
 </resources>

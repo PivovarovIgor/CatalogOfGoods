@@ -8,6 +8,7 @@ import androidx.paging.cachedIn
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.flow.MutableStateFlow
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
@@ -24,10 +25,10 @@ class CatalogOfGoodsViewModel @Inject constructor(
     private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData()
     private val backgroundProcessing: MutableLiveData<BackgroundLoadingState> = MutableLiveData()
     private var disposable: Disposable? = null
-    var setFilterOnStock: Boolean = false
+    private var searchQuery: String = ""
 
     private val filter: (goods: Goods) -> Boolean = { goods ->
-        !setFilterOnStock || goods.stock > 0
+        searchQuery.isBlank() || goods.name.contains(searchQuery, ignoreCase = true)
     }
     val dataPagingFlow = repository.getPagingFlowFromLocalSource(filter)
         .cachedIn(viewModelScope)
@@ -54,6 +55,11 @@ class CatalogOfGoodsViewModel @Inject constructor(
         override fun onComplete() {
             backgroundProcessing.postValue(BackgroundLoadingState.Complete)
         }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        searchQuery = query
+        liveDataToObserve.postValue(AppState.upDateOnSearch(query))
     }
 
     fun observe(

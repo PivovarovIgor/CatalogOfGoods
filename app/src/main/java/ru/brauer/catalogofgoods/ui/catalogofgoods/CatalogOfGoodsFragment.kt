@@ -4,18 +4,18 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.terrakok.cicerone.Router
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.brauer.catalogofgoods.App
@@ -71,7 +71,7 @@ class CatalogOfGoodsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
+        setHasOptionsMenu(true)
         return FragmentCatalogOfGoodsBinding.inflate(inflater, container, false)
             .also { binding = it }
             .root
@@ -81,14 +81,22 @@ class CatalogOfGoodsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
-        Handler(Looper.myLooper()!!).postDelayed(
-            {
-                viewModel.setFilterOnStock = true
-                Toast.makeText(context, "applied the filter on in stock", Toast.LENGTH_LONG).show()
-                pagingAdapter.refresh()
-            },
-            10_000L
-        )
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
+        val searchView = menu.findItem(R.id.action_search_goods)?.actionView as? SearchView
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.onSearchQueryChanged(query ?: "")
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.onSearchQueryChanged(newText ?: "")
+                return true
+            }
+        })
     }
 
     private fun initRecyclerView() {
@@ -120,6 +128,8 @@ class CatalogOfGoodsFragment : Fragment() {
             context?.run {
                 alertDialog(appState.exception.message, R.string.app_state_error)
             }
+        } else if (appState is AppState.upDateOnSearch) {
+            pagingAdapter.refresh()
         }
     }
 
