@@ -1,10 +1,12 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.facebook.shimmer.ShimmerFrameLayout
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
@@ -34,10 +36,10 @@ class CatalogOfGoodsAdapter(
 
     inner class ViewHolder(private val binding: ItemGoodsBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
         fun bindData(position: Int) = with(binding) {
             getItem(position)
                 ?.let { goods ->
+                    stopShimmerIfItStarted()
                     goodsName.text = goods.name
                     goodsImage.loadFirstImage(goods.listOfPhotosUri)
                     price.text = itemView.resources.getString(
@@ -48,9 +50,22 @@ class CatalogOfGoodsAdapter(
                         R.string.stock,
                         goods.stock,
                     )
-                } ?: let {
-                goodsName.text = "---"
-                goodsImage.background = null
+                } ?: startShimmer()
+        }
+        private fun startShimmer() {
+            with(binding) {
+                cardOfGoods.visibility = View.GONE
+                cardOfGoodsShimmer.visibility = View.VISIBLE
+                cardOfGoodsShimmer.startShimmer()
+            }
+        }
+        private fun stopShimmerIfItStarted() {
+            with(binding) {
+                if (cardOfGoods.visibility == View.GONE) {
+                    cardOfGoodsShimmer.stopShimmer()
+                    cardOfGoodsShimmer.visibility = View.GONE
+                    cardOfGoods.visibility = View.VISIBLE
+                }
             }
         }
     }
