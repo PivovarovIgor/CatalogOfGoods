@@ -14,6 +14,7 @@ private val DRAWABLE_CROSS_FADE_FACTORY =
     DrawableCrossFadeFactory.Builder()
         .setCrossFadeEnabled(true)
         .build()
+private const val ROUNDING_RADIUS_FOR_PHOTO = 25
 
 fun ImageView.loadFirstImage(listOfPhotosUri: List<String>) =
     Glide.with(this)
@@ -24,5 +25,5 @@ fun ImageView.loadFirstImage(listOfPhotosUri: List<String>) =
         .placeholder(R.drawable.ic_baseline_image_24)
         .error(R.drawable.ic_baseline_broken_image_24)
         .transition(withCrossFade(DRAWABLE_CROSS_FADE_FACTORY))
-        .transform(RoundedCorners(25))
+        .transform(RoundedCorners(ROUNDING_RADIUS_FOR_PHOTO))
         .into(this)
