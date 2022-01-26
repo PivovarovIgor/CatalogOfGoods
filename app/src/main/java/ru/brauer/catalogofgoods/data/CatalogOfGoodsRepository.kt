@@ -118,12 +118,12 @@ const val MAIN_PRICE_TYPE = "fdf5831f-8b8c-11e9-80f4-005056912b25"
 
 fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
 
-    val offers: List<OfferEnt> = appDataBase.offerDao.getOffersByGoodsId(id)
-    val listOfOfferId: List<String> = offers.map { it.id }
+    val matchPattern = "$id%"
+
     val pricesEntOfOffer: List<PriceEnt> =
-        appDataBase.priceDao.getPricesByOffersId(listOfOfferId, MAIN_PRICE_TYPE)
+        appDataBase.priceDao.getPricesByOffersId(matchPattern, MAIN_PRICE_TYPE)
     val restsEntOfOffer: List<RestEnt> =
-        appDataBase.restDao.getRestsByOffersId(listOfOfferId)
+        appDataBase.restDao.getRestsByOffersId(matchPattern)
 
     return Goods(
         id = id,
@@ -133,7 +133,7 @@ fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
             .toBusinessData(),
         offers = appDataBase.offerDao
             .getOffersByGoodsId(id)
-            .toBusinessData(pricesEntOfOffer, restsEntOfOffer),
+            .toBusinessData(id, pricesEntOfOffer, restsEntOfOffer),
         maxPricePresent = pricesEntOfOffer
             .filter { it.priceValue != 0 }
             .maxOfOrNull { it.priceValue }
@@ -146,24 +146,36 @@ fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
 }
 
 private fun List<OfferEnt>.toBusinessData(
+    goodsId: String,
     listOfPrices: List<PriceEnt>,
     listOfRests: List<RestEnt>
-): List<Offer> = map { it.toBusinessData(listOfRests, listOfPrices) }
+): List<Offer> = map { it.toBusinessData(goodsId, listOfRests, listOfPrices) }
 
-private fun OfferEnt.toBusinessData(listOfRests: List<RestEnt>, listOfPrices: List<PriceEnt>) =
-    Offer(
-        id = this.id,
+private fun OfferEnt.toBusinessData(
+    goodsId: String,
+    listOfRests: List<RestEnt>,
+    listOfPrices: List<PriceEnt>
+): Offer {
+    val offerId =  if (goodsId != this.id) {
+        "$goodsId#"
+    } else {
+        ""
+    } + this.id
+
+    return Offer(
+        id = offerId,
         name = this.name,
         stock = listOfRests
-            .filter { it.offerId == this.id }
+            .filter { it.offerId == offerId }
             .sumOf { it.count },
         price = (listOfPrices
             .let { listOfPricesEnt ->
-                listOfPricesEnt.find { it.offerId == this.id }
+                listOfPricesEnt.find { it.offerId == offerId }
                     ?: PriceEnt.empty()
             }
             .toBusinessData())
     )
+}
 
 private fun PriceEnt.toBusinessData(): Price =
     Price(

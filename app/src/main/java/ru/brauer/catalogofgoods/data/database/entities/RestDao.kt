@@ -19,6 +19,6 @@ interface RestDao {
     @Query("DELETE FROM rests WHERE data_time_updated < :dataTime")
     fun deletePreviouslyUpdatedDates(dataTime: Long)
 
-    @Query("SELECT * FROM rests WHERE offer_id IN (:offersId)")
-    fun getRestsByOffersId(offersId: List<String>): List<RestEnt>
+    @Query("SELECT * FROM rests WHERE offer_id LIKE :offersId")
+    fun getRestsByOffersId(offersId: String): List<RestEnt>
 }
