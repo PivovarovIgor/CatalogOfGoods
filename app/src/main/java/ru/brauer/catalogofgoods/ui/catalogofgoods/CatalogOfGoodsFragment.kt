@@ -2,10 +2,7 @@ package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.*
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -15,7 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.terrakok.cicerone.Router
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.brauer.catalogofgoods.App
@@ -32,6 +30,7 @@ class CatalogOfGoodsFragment : Fragment() {
 
     companion object {
         fun newInstance() = CatalogOfGoodsFragment()
+        private const val NEW_SEARCH_QUERY_DELAY = 2000L
     }
 
     private var binding: FragmentCatalogOfGoodsBinding? = null
@@ -66,6 +65,8 @@ class CatalogOfGoodsFragment : Fragment() {
         ).get(CatalogOfGoodsViewModel::class.java)
     }
 
+    private var searchQueryText: String = ""
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -80,20 +81,39 @@ class CatalogOfGoodsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
+        searchQueryText = viewModel.searchQueryText
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
-        val searchView = menu.findItem(R.id.action_search_goods)?.actionView as? SearchView
+        val searchMenuItem = menu.findItem(R.id.action_search_goods)
+        val searchView = searchMenuItem?.actionView as? SearchView
+
+        if (searchQueryText.isNotBlank()) {
+            searchView?.let {
+                searchMenuItem.expandActionView()
+                it.setQuery(searchQueryText, false)
+                it.clearFocus()
+            }
+        }
+
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            var job: Job? = null
+
             override fun onQueryTextSubmit(query: String?): Boolean {
-                viewModel.onSearchQueryChanged(query ?: "")
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.onSearchQueryChanged(newText ?: "")
+                job?.cancel()
+                job = lifecycleScope.launch {
+                    if (newText?.isNotBlank() == true) {
+                        delay(NEW_SEARCH_QUERY_DELAY)
+                    }
+                    viewModel.onSearchQueryChanged(newText ?: "")
+                }
                 return true
             }
         })
@@ -129,7 +149,10 @@ class CatalogOfGoodsFragment : Fragment() {
                 alertDialog(appState.exception.message, R.string.app_state_error)
             }
         } else if (appState is AppState.upDateOnSearch) {
-            pagingAdapter.refresh()
+            if (appState.query != searchQueryText) {
+                searchQueryText = appState.query
+                pagingAdapter.refresh()
+            }
         }
     }
 
