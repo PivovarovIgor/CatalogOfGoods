@@ -1,7 +1,6 @@
 package ru.brauer.catalogofgoods.data.database
 
 
-import android.util.Log
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import ru.brauer.catalogofgoods.data.database.entities.*
@@ -14,7 +13,7 @@ import ru.brauer.catalogofgoods.data.database.entities.*
         PriceEnt::class,
         RestEnt::class
     ],
-    version = 2
+    version = 3
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract val goodsDao: GoodsDao

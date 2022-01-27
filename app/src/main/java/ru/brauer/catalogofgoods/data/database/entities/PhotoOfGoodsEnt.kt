@@ -7,8 +7,8 @@ import androidx.room.ForeignKey
 @Entity(
     tableName = "photos_of_goods",
     primaryKeys = [
-        "photo_url",
-        "goods_id"
+        "goods_id",
+        "photo_url"
     ],
     foreignKeys = [
         ForeignKey(

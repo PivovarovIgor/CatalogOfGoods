@@ -11,4 +11,12 @@ data class OfferEnt(
     val name: String,
     @ColumnInfo(name = "goods_id", index = true) val goodsId: String,
     @ColumnInfo(name = "data_time_updated") val dataTimeUpdated: Long = TimestampProvider.current()
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        return id == (other as? OfferEnt)?.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}
