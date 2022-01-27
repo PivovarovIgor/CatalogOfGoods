@@ -58,7 +58,6 @@ ON offers.id = prices.offer_id
 WHERE 
 offers.goods_id = :goodsId
 AND prices.type_price_id = :idOfMainPriceType
-
 """
     )
     fun getOffersAndPricesByGoodsId(goodsId: String, idOfMainPriceType: String): Map<OfferEnt, List<PriceEnt>>
