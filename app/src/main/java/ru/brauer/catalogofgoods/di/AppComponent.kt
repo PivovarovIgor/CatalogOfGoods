@@ -12,8 +12,8 @@ import javax.inject.Singleton
         CiceroneModule::class,
         ViewModelModule::class,
         DataModule::class,
-        UiScheduler::class,
-        AppModule::class
+        AppModule::class,
+        RxModule::class
     ]
 )
 interface AppComponent {

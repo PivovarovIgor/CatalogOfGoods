@@ -4,7 +4,6 @@ import androidx.paging.*
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import io.reactivex.rxjava3.subjects.Subject
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +19,14 @@ import ru.brauer.catalogofgoods.data.entities.Price
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import java.math.BigDecimal
 import javax.inject.Inject
 
 class CatalogOfGoodsRepository @Inject constructor(
     private val catalogOfGoodsRetriever: ICatalogOfGoodsRetrieverFromNet,
-    private val appDatabase: AppDatabase
+    private val appDatabase: AppDatabase,
+    private val schedulersProvider: ISchedulerProvider
 ) :
     IRepository {
 
@@ -43,7 +44,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             }
             catalogOfGoodsRetriever
                 .retrieve()
-                .observeOn(Schedulers.io())
+                .observeOn(schedulersProvider.io())
                 .doOnSubscribe { appDatabase.startUpdatingData() }
                 .doOnComplete { appDatabase.deleteNotUpdatedData() }
                 .doOnError { appDatabase.endUpdatingData() }
@@ -91,7 +92,7 @@ class CatalogOfGoodsRepository @Inject constructor(
                     processingSubject.onComplete()
                 }).also { disposable = it }
             listOf<Goods>() // TODO
-        }.subscribeOn(Schedulers.io())
+        }.subscribeOn(schedulersProvider.io())
 
     override fun getPagingFlowFromLocalSource(filter: (goods: Goods) -> Boolean): Flow<PagingData<Goods>> =
         Pager(
@@ -108,6 +109,13 @@ class CatalogOfGoodsRepository @Inject constructor(
                 }
                     .filter { filter(it) }
             }
+
+    override fun disposeObservables() {
+        if (disposable?.isDisposed == false) {
+            disposable?.dispose()
+        }
+        disposable = null
+    }
 
     companion object {
         private const val PAGE_SIZE = 20

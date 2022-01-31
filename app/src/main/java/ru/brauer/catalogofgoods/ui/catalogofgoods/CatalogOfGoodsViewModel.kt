@@ -6,18 +6,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import io.reactivex.rxjava3.core.Observer
-import io.reactivex.rxjava3.core.Scheduler
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Inject
 
 
 class CatalogOfGoodsViewModel @Inject constructor(
     private val repository: IRepository,
-    private val uiScheduler: Scheduler
+    private val compositeDisposable: CompositeDisposable,
+    private val schedulerProvider: ISchedulerProvider
 ) :
     ViewModel() {
 
@@ -82,7 +84,7 @@ class CatalogOfGoodsViewModel @Inject constructor(
         liveDataToObserve.postValue(AppState.Loading)
         return repository
             .getGoods(processingLoadingObserver)
-            .observeOn(uiScheduler)
+            .observeOn(schedulerProvider.ui())
             .doOnDispose {
                 liveDataToObserve.postValue(AppState.Success(listOf()))
             }
@@ -90,6 +92,12 @@ class CatalogOfGoodsViewModel @Inject constructor(
                 liveDataToObserve.postValue(AppState.Success(it))
             }, {
                 liveDataToObserve.postValue(AppState.Error(it))
-            })
+            }).also { compositeDisposable.add(it) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.dispose()
+        repository.disposeObservables()
     }
 }

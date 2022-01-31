@@ -11,6 +11,7 @@ import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.net.CatalogOfGoodsFtpRetriever
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Singleton
 
 @Module
@@ -24,14 +25,18 @@ class DataModule {
     @Provides
     fun repository(
         retrieverFromNet: ICatalogOfGoodsRetrieverFromNet,
-        appDatabase: AppDatabase
+        appDatabase: AppDatabase,
+        schedulersProvider: ISchedulerProvider
     ): IRepository =
-        CatalogOfGoodsRepository(retrieverFromNet, appDatabase)
+        CatalogOfGoodsRepository(retrieverFromNet, appDatabase, schedulersProvider)
 
     @Singleton
     @Provides
-    fun retrieverFromNet(parser: IXmlParserByRule): ICatalogOfGoodsRetrieverFromNet =
-        CatalogOfGoodsFtpRetriever(parser)
+    fun retrieverFromNet(
+        parser: IXmlParserByRule,
+        schedulersProvider: ISchedulerProvider
+    ): ICatalogOfGoodsRetrieverFromNet =
+        CatalogOfGoodsFtpRetriever(parser, schedulersProvider)
 
     @Singleton
     @Provides

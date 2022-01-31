@@ -4,7 +4,6 @@ import android.accounts.NetworkErrorException
 import android.util.Log
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
-import io.reactivex.rxjava3.schedulers.Schedulers
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -12,10 +11,12 @@ import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
 import ru.brauer.catalogofgoods.extensions.convertPathOfPhotoRelativelyFileName
+import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(
-    private val commerceMlParser: IXmlParserByRule
+    private val commerceMlParser: IXmlParserByRule,
+    private val schedulersProvider: ISchedulerProvider
 ) : ICatalogOfGoodsRetrieverFromNet {
 
     override fun retrieve(): Observable<List<EntityOfCommerceMl>> =
@@ -50,7 +51,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
                 ftpClient.disconnect()
             }
             emitter.onComplete()
-        }.subscribeOn(Schedulers.io())
+        }.subscribeOn(schedulersProvider.io())
 
     private fun retrieveFromEachFiles(
         listOfFiles: List<String>,
