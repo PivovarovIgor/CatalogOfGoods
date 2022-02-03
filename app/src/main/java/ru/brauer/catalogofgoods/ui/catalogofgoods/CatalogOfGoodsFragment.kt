@@ -87,6 +87,10 @@ class CatalogOfGoodsFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
+        menu.findItem(R.id.action_load_data)?.setOnMenuItemClickListener {
+            viewModel.beginLoadingData()
+            true
+        }
         val searchMenuItem = menu.findItem(R.id.action_search_goods)
         val searchView = searchMenuItem?.actionView as? SearchView
 

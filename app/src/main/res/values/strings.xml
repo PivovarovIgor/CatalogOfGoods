@@ -11,5 +11,6 @@
 <!--    searchable-->
     <string name="search_hint">search goods</string>
     <string name="search_goods">Search goods</string>
+    <string name="begin_loading_data">begin loading data from FTP server</string>
 
 </resources>

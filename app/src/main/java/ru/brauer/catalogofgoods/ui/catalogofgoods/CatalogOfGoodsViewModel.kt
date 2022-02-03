@@ -23,8 +23,13 @@ class CatalogOfGoodsViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData()
-    private val backgroundProcessing: MutableLiveData<BackgroundLoadingState> = MutableLiveData()
+    private val liveDataToObserve: MutableLiveData<AppState> = MutableLiveData(
+        AppState.Success(
+            listOf()
+        )
+    )
+    private val backgroundProcessing: MutableLiveData<BackgroundLoadingState> =
+        MutableLiveData(BackgroundLoadingState.Complete)
     private var disposable: Disposable? = null
     var searchQueryText: String = ""
         private set
@@ -70,14 +75,16 @@ class CatalogOfGoodsViewModel @Inject constructor(
         renderBackgroundProcessing: ((backgroundLoadingState: BackgroundLoadingState) -> Unit)? = null
     ) {
         liveDataToObserve.observe(lifecycleOwner, renderData)
-        if (liveDataToObserve.value !is AppState.Success
-            && (disposable?.isDisposed != false)
-        ) {
-            disposable = getData()
-        }
         renderBackgroundProcessing?.let {
             backgroundProcessing.observe(lifecycleOwner, it)
         }
+    }
+
+    fun beginLoadingData() {
+        if (disposable?.isDisposed == false) {
+            disposable?.dispose()
+        }
+        disposable = getData()
     }
 
     private fun getData(): Disposable {
