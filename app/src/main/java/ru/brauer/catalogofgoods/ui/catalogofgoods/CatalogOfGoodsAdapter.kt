@@ -6,11 +6,10 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.facebook.shimmer.ShimmerFrameLayout
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
-import ru.brauer.catalogofgoods.extensions.loadFirstImage
+import ru.brauer.catalogofgoods.ui.catalogofgoods.photopager.PhotosOfGoodsAdapter
 
 class CatalogOfGoodsAdapter(
     diffCallback: DiffUtil.ItemCallback<Goods>,
@@ -22,7 +21,10 @@ class CatalogOfGoodsAdapter(
         viewType: Int
     ): CatalogOfGoodsAdapter.ViewHolder =
         ItemGoodsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            .let(::ViewHolder)
+            .let {
+                val adapter = PhotosOfGoodsAdapter()
+                ViewHolder(it, adapter)
+            }
             .apply {
                 itemView.setOnClickListener { _ ->
                     getItem(absoluteAdapterPosition)
@@ -34,14 +36,17 @@ class CatalogOfGoodsAdapter(
         holder.bindData(position)
 
 
-    inner class ViewHolder(private val binding: ItemGoodsBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        private val binding: ItemGoodsBinding,
+        private val adapter: PhotosOfGoodsAdapter
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bindData(position: Int) = with(binding) {
             getItem(position)
                 ?.let { goods ->
                     stopShimmerIfItStarted()
                     goodsName.text = goods.name
-                    goodsImage.loadFirstImage(goods.listOfPhotosUri)
+                    adapter.photos = goods.listOfPhotosUri
+                    photosOfGoods.adapter = adapter
                     price.text = itemView.resources.getString(
                         R.string.price,
                         goods.maxPricePresent,
@@ -52,6 +57,7 @@ class CatalogOfGoodsAdapter(
                     )
                 } ?: startShimmer()
         }
+
         private fun startShimmer() {
             with(binding) {
                 cardOfGoods.visibility = View.GONE
@@ -59,6 +65,7 @@ class CatalogOfGoodsAdapter(
                 cardOfGoodsShimmer.startShimmer()
             }
         }
+
         private fun stopShimmerIfItStarted() {
             with(binding) {
                 if (cardOfGoods.visibility == View.GONE) {

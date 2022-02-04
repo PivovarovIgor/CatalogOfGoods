@@ -13,7 +13,8 @@
         android:foreground="?attr/selectableItemBackground"
         android:padding="4dp"
         android:visibility="gone"
-        app:cardCornerRadius="@dimen/card_corner_radius">
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        tools:visibility="visible">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -21,17 +22,20 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
 
-            <ImageView
-                android:id="@+id/goods_image"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/photos_of_goods"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:orientation="horizontal"
                 android:src="@drawable/ic_baseline_image_24"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintBottom_toTopOf="@id/goods_name"
                 app:layout_constraintDimensionRatio="w,1:1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:contentDescription="image of goods" />
+                tools:contentDescription="image of goods"
+                tools:listitem="@layout/item_photo" />
 
             <TextView
                 android:id="@+id/goods_name"
@@ -42,7 +46,7 @@
                 app:layout_constraintBottom_toTopOf="@id/price"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/goods_image"
+                app:layout_constraintTop_toBottomOf="@id/photos_of_goods"
                 tools:text="some name" />
 
             <TextView
@@ -77,7 +81,8 @@
         android:id="@+id/card_of_goods_shimmer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible">
+        android:visibility="visible"
+        tools:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
