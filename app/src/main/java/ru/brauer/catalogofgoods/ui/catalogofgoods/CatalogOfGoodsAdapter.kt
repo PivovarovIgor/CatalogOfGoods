@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
@@ -40,6 +41,16 @@ class CatalogOfGoodsAdapter(
         private val binding: ItemGoodsBinding,
         private val adapter: PhotosOfGoodsAdapter
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        val snapHelper = PagerSnapHelper()
+            .apply {
+                attachToRecyclerView(binding.photosOfGoods)
+            }
+
+        init {
+            binding.photosOfGoods.addItemDecoration(LinePagerIndicatorDecoration())
+        }
+
         fun bindData(position: Int) = with(binding) {
             getItem(position)
                 ?.let { goods ->
