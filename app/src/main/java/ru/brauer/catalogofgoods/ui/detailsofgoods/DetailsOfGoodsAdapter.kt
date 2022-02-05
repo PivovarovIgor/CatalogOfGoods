@@ -3,12 +3,14 @@ package ru.brauer.catalogofgoods.ui.detailsofgoods
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemDetailsOfGoodsOfferBinding
 import ru.brauer.catalogofgoods.databinding.ItemDetailsOfGoodsPhotoBinding
-import ru.brauer.catalogofgoods.extensions.loadFirstImage
+import ru.brauer.catalogofgoods.ui.base.LinePagerIndicatorDecoration
+import ru.brauer.catalogofgoods.ui.catalogofgoods.photopager.PhotosOfGoodsAdapter
 
 class DetailsOfGoodsAdapter(
     private val goods: Goods
@@ -51,8 +53,21 @@ class DetailsOfGoodsAdapter(
 
     inner class PhotoOfGoodsViewHolder(private val binding: ItemDetailsOfGoodsPhotoBinding) :
         BaseViewHolder(binding.root) {
+
+        private val adapter: PhotosOfGoodsAdapter = PhotosOfGoodsAdapter()
+
+        private val snapHelper = PagerSnapHelper()
+            .apply { attachToRecyclerView(binding.photosOfGoods) }
+
+        init {
+            binding.photosOfGoods.let {
+                it.addItemDecoration(LinePagerIndicatorDecoration())
+                it.adapter = adapter
+            }
+        }
+
         override fun bind(position: Int) {
-            binding.goodsImage.loadFirstImage(goods.listOfPhotosUri)
+            adapter.photos = goods.listOfPhotosUri
         }
     }
 

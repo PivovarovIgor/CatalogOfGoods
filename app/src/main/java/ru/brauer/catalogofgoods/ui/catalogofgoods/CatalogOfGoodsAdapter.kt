@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.databinding.ItemGoodsBinding
+import ru.brauer.catalogofgoods.ui.base.LinePagerIndicatorDecoration
 import ru.brauer.catalogofgoods.ui.catalogofgoods.photopager.PhotosOfGoodsAdapter
 
 class CatalogOfGoodsAdapter(
@@ -22,10 +23,7 @@ class CatalogOfGoodsAdapter(
         viewType: Int
     ): CatalogOfGoodsAdapter.ViewHolder =
         ItemGoodsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            .let {
-                val adapter = PhotosOfGoodsAdapter()
-                ViewHolder(it, adapter)
-            }
+            .let(::ViewHolder)
             .apply {
                 itemView.setOnClickListener { _ ->
                     getItem(absoluteAdapterPosition)
@@ -38,17 +36,19 @@ class CatalogOfGoodsAdapter(
 
 
     inner class ViewHolder(
-        private val binding: ItemGoodsBinding,
-        private val adapter: PhotosOfGoodsAdapter
+        private val binding: ItemGoodsBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        val snapHelper = PagerSnapHelper()
-            .apply {
-                attachToRecyclerView(binding.photosOfGoods)
-            }
+        private val adapter: PhotosOfGoodsAdapter = PhotosOfGoodsAdapter()
+
+        private val snapHelper = PagerSnapHelper()
+            .apply { attachToRecyclerView(binding.photosOfGoods) }
 
         init {
-            binding.photosOfGoods.addItemDecoration(LinePagerIndicatorDecoration())
+            binding.photosOfGoods.let {
+                it.addItemDecoration(LinePagerIndicatorDecoration())
+                it.adapter = adapter
+            }
         }
 
         fun bindData(position: Int) = with(binding) {
@@ -57,7 +57,6 @@ class CatalogOfGoodsAdapter(
                     stopShimmerIfItStarted()
                     goodsName.text = goods.name
                     adapter.photos = goods.listOfPhotosUri
-                    photosOfGoods.adapter = adapter
                     price.text = itemView.resources.getString(
                         R.string.price,
                         goods.maxPricePresent,

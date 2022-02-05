@@ -1,4 +1,4 @@
-package ru.brauer.catalogofgoods.ui.catalogofgoods
+package ru.brauer.catalogofgoods.ui.base
 
 import android.content.res.Resources
 import android.graphics.Canvas
