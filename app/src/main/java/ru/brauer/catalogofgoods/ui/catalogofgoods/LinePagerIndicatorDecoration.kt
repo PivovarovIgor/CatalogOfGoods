@@ -31,13 +31,11 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
     private val mIndicatorStrokeWidth = DEFAULT_INDICATOR_STROKE_WIDTH * DP
     private val mInterpolator = AccelerateDecelerateInterpolator()
 
-    private val mPaint = Paint()
-
-    init {
-        mPaint.strokeCap = Paint.Cap.ROUND
-        mPaint.strokeWidth = mIndicatorStrokeWidth
-        mPaint.style = Paint.Style.STROKE
-        mPaint.isAntiAlias = true
+    private val mPaint = Paint().apply {
+        strokeCap = Paint.Cap.ROUND
+        strokeWidth = mIndicatorStrokeWidth
+        style = Paint.Style.STROKE
+        isAntiAlias = true
     }
 
     override fun getItemOffsets(
