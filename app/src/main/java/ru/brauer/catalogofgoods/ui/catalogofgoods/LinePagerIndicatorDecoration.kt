@@ -50,7 +50,7 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
 
         // center horizontally, calculate width and subtract half from center
         val totalLength = mIndicatorItemLength * itemCount
-        val paddingBetweenItem = max(0, itemCount - 1) + mIndicatorItemPadding
+        val paddingBetweenItem = max(0, itemCount - 1) * mIndicatorItemPadding
         val indicatorTotalWidth = totalLength + paddingBetweenItem
         val indicatorStartX = (parent.width - indicatorTotalWidth) / 2f
 
