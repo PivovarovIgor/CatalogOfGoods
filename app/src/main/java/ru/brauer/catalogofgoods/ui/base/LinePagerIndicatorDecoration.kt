@@ -17,7 +17,7 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
         private val DP = Resources.getSystem().displayMetrics.density
         private const val DEFAULT_INDICATOR_HEIGHT = 6f
         private const val DEFAULT_INDICATOR_ITEM_LENGTH = 12f
-        private const val DEFAULT_INDICATOR_ITEM_PADDING = 5f
+        private const val DEFAULT_INDICATOR_ITEM_PADDING = 10f
         private const val DEFAULT_INDICATOR_STROKE_WIDTH = 4f
         private const val COLOR_ACTIVE: Int = (0xFF00FCB5).toInt()
         private const val COLOR_INACTIVE: Int = 0x66999999
@@ -60,12 +60,9 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
         val totalLength = mIndicatorItemLength * itemCount
         val paddingBetweenItem = max(0, itemCount - 1) * mIndicatorItemPadding
         val indicatorTotalWidth = totalLength + paddingBetweenItem
-        val indicatorStartX = (parent.width - indicatorTotalWidth) / 2f
 
         // center vertically in the allotted space
         val indicatorPosY = parent.height - mIndicatorHeight / 2f
-
-        drawInactiveIndicator(c, indicatorStartX, indicatorPosY, itemCount)
 
         // find active page (which should be highlighted)
         val layoutManager = parent.layoutManager as LinearLayoutManager
@@ -83,7 +80,19 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
         // interpolate offset for smooth animation
         val progress = mInterpolator.getInterpolation(left * -1 / width.toFloat())
 
-        drawHighlights(c, indicatorStartX, indicatorPosY, activePosition, progress, itemCount)
+        //calculate start of indicate
+        val indicatorStartX = if (parent.width >= indicatorTotalWidth) {
+            (parent.width - indicatorTotalWidth) / 2f
+        } else {
+            val partialShift = (activePosition + 1 * progress) / (itemCount - 1)
+            val correctOnStrokeWidth =
+                mIndicatorStrokeWidth * (1 - partialShift) - mIndicatorStrokeWidth * partialShift
+            (parent.width - indicatorTotalWidth) * partialShift + correctOnStrokeWidth
+        }
+
+        drawInactiveIndicator(c, indicatorStartX, indicatorPosY, itemCount)
+
+        drawHighlights(c, indicatorStartX, indicatorPosY, activePosition, progress)
     }
 
     private fun drawHighlights(
@@ -91,48 +100,20 @@ class LinePagerIndicatorDecoration : RecyclerView.ItemDecoration() {
         indicatorStartX: Float,
         indicatorPosY: Float,
         activePosition: Int,
-        progress: Float,
-        itemCount: Int
+        progress: Float
     ) {
         mPaint.color = COLOR_ACTIVE
 
         val itemWidth = mIndicatorItemLength + mIndicatorItemPadding
 
-        if (progress == 0f) {
-            // no swipe, draw a normal indicator
-            val highlightStart = indicatorStartX + itemWidth * activePosition
-            canvas.drawLine(
-                highlightStart,
-                indicatorPosY,
-                highlightStart + mIndicatorItemLength,
-                indicatorPosY,
-                mPaint
-            )
-        } else {
-            val highlightStart = indicatorStartX + itemWidth * activePosition
-            val partialLength = mIndicatorItemLength * progress
-
-            // draw the cut off highlight
-            canvas.drawLine(
-                highlightStart + partialLength,
-                indicatorPosY,
-                highlightStart + mIndicatorItemLength,
-                indicatorPosY,
-                mPaint
-            )
-
-            // draw the highlight overlapping to the next item as well
-            if (activePosition < itemCount - 1) {
-                val highlightStartOfNextItem = highlightStart + itemWidth
-                canvas.drawLine(
-                    highlightStartOfNextItem,
-                    indicatorPosY,
-                    highlightStartOfNextItem + partialLength,
-                    indicatorPosY,
-                    mPaint
-                )
-            }
-        }
+        val highlightStart = indicatorStartX + itemWidth * activePosition + (itemWidth * progress)
+        canvas.drawLine(
+            highlightStart,
+            indicatorPosY,
+            highlightStart + mIndicatorItemLength,
+            indicatorPosY,
+            mPaint
+        )
     }
 
     private fun drawInactiveIndicator(
