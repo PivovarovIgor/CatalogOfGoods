@@ -8,10 +8,11 @@ import androidx.paging.cachedIn
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
-import ru.brauer.catalogofgoods.data.entities.Goods
+import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.extensions.getAllContains
 import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Inject
 
@@ -34,9 +35,14 @@ class CatalogOfGoodsViewModel @Inject constructor(
     var searchQueryText: String = ""
         private set
 
-    private val filter: (goods: Goods) -> Boolean = { goods ->
-        searchQueryText.isBlank() || goods.name.contains(searchQueryText, ignoreCase = true)
+    private val filter: (GoodsEnt) -> List<Pair<Int, Int>>? = { goods ->
+        if (searchQueryText.isBlank()) {
+            null
+        } else {
+            goods.name.getAllContains(searchQueryText)
+        }
     }
+
     val dataPagingFlow = repository.getPagingFlowFromLocalSource(filter)
         .cachedIn(viewModelScope)
 

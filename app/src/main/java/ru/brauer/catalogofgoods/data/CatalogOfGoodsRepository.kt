@@ -1,5 +1,12 @@
 package ru.brauer.catalogofgoods.data
 
+import android.graphics.Color
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.paging.*
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
@@ -94,7 +101,7 @@ class CatalogOfGoodsRepository @Inject constructor(
             listOf<Goods>() // TODO
         }.subscribeOn(schedulersProvider.io())
 
-    override fun getPagingFlowFromLocalSource(filter: (goods: Goods) -> Boolean): Flow<PagingData<Goods>> =
+    override fun getPagingFlowFromLocalSource(filter: (GoodsEnt) -> List<Pair<Int, Int>>?): Flow<PagingData<Goods>> =
         Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE
@@ -102,12 +109,15 @@ class CatalogOfGoodsRepository @Inject constructor(
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
             .map { pagingData ->
-                pagingData.map {
-                    withContext(Dispatchers.IO) {
-                        it.toBusinessData(appDatabase)
+                pagingData
+                    .filter {
+                        filter(it)?.isNotEmpty() ?: true
                     }
-                }
-                    .filter { filter(it) }
+                    .map {
+                        withContext(Dispatchers.IO) {
+                            it.toBusinessData(appDatabase, filter)
+                        }
+                    }
             }
 
     override fun disposeObservables() {
@@ -124,7 +134,10 @@ class CatalogOfGoodsRepository @Inject constructor(
 
 const val MAIN_PRICE_TYPE = "fdf5831f-8b8c-11e9-80f4-005056912b25"
 
-fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
+fun GoodsEnt.toBusinessData(
+    appDataBase: AppDatabase,
+    filter: (GoodsEnt) -> List<Pair<Int, Int>>?
+): Goods {
 
     val pricesEntOfOffer: Map<OfferEnt, List<PriceEnt>> =
         appDataBase.offerDao.getOffersAndPricesByGoodsId(id, MAIN_PRICE_TYPE)
@@ -135,9 +148,35 @@ fun GoodsEnt.toBusinessData(appDataBase: AppDatabase): Goods {
         .toMutableList()
         .sortedBy { it.name }
 
+    val foundSubstrings = filter(this)
+    val spannedString = foundSubstrings?.let { toSpanning ->
+        SpannableString(name).apply {
+            toSpanning.forEach {
+                setSpan(
+                    ForegroundColorSpan(Color.BLUE),
+                    it.first,
+                    it.second,
+                    Spanned.SPAN_EXCLUSIVE_INCLUSIVE
+                )
+                setSpan(
+                    BackgroundColorSpan(0xffc9ff00.toInt()),
+                    it.first,
+                    it.second,
+                    Spanned.SPAN_EXCLUSIVE_INCLUSIVE
+                )
+                setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    it.first,
+                    it.second,
+                    Spanned.SPAN_EXCLUSIVE_INCLUSIVE
+                )
+            }
+        }
+    }
+
     return Goods(
         id = id,
-        name = name,
+        name = spannedString ?: name,
         listOfPhotosUri = appDataBase.photoOfGoodsDao
             .getPhotosByGoodsId(id)
             .toBusinessData(),
@@ -252,10 +291,6 @@ fun EntityOfCommerceMl.Offer.toGetRestsToDatabaseData(): List<RestEnt> =
             count = rest.count.toIntOrNull() ?: 0
         )
     }
-
-@JvmName("toBusinessDataGoodsEnt")
-fun List<GoodsEnt>.toBusinessData(appDatabase: AppDatabase): List<Goods> =
-    map { it.toBusinessData(appDatabase) }
 
 fun List<EntityOfCommerceMl>.toDatabaseDataListOfGoods(): List<GoodsEnt> = mapNotNull {
     (it as? EntityOfCommerceMl.Goods)?.toDatabaseData()

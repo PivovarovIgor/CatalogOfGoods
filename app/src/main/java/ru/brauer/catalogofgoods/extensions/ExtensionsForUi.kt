@@ -29,3 +29,24 @@ fun ImageView.loadFirstImage(listOfPhotosUri: String?) =
         .transition(withCrossFade(DRAWABLE_CROSS_FADE_FACTORY))
         .transform(RoundedCorners(ROUNDING_RADIUS_FOR_PHOTO))
         .into(this)
+
+fun CharSequence.getAllContains(string: String): List<Pair<Int, Int>> {
+    if (string.isBlank()) {
+        return listOf()
+    }
+    return this.getAllContains(string, 0)
+}
+
+private tailrec fun CharSequence.getAllContains(
+    string: String,
+    startIndex: Int,
+    result: MutableList<Pair<Int, Int>> = mutableListOf()
+): List<Pair<Int, Int>> {
+    val start = this.indexOf(string, startIndex, true)
+    if (start == -1) {
+        return result
+    }
+    val end = start + string.length
+    result += (start to end)
+    return this.getAllContains(string, end + 1, result)
+}

@@ -28,7 +28,6 @@ import ru.brauer.catalogofgoods.TestCoroutineRule
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.domain.IRepository
 import ru.brauer.catalogofgoods.stubs.SchedulerProviderStub
-import java.lang.Thread.sleep
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
