@@ -19,6 +19,10 @@ interface ICachedFtpClientPool {
 
 class CachedFtpClientPool : ICachedFtpClientPool {
 
+    private companion object {
+        private const val TIMEOUT = 10000
+    }
+
     private val cacheOfClients = mutableListOf<FTPClient>()
 
     override fun getFtpClient(): ICachedFtpClientPool.IFtpClientHolder {
@@ -53,7 +57,7 @@ class CachedFtpClientPool : ICachedFtpClientPool {
         }
         ftpClient.enterLocalPassiveMode()
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE)
-        ftpClient.setDataTimeout(10000)
+        ftpClient.setDataTimeout(TIMEOUT)
 
         val replyCode: Int = ftpClient.replyCode
         if (!FTPReply.isPositiveCompletion(replyCode)) {

@@ -19,6 +19,10 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val schedulersProvider: ISchedulerProvider
 ) : ICatalogOfGoodsRetrieverFromNet {
 
+    companion object {
+        private const val TIMEOUT = 10000
+    }
+
     override fun retrieve(): Observable<List<EntityOfCommerceMl>> =
         Observable.create<List<EntityOfCommerceMl>> { emitter ->
 
@@ -27,7 +31,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
             if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
                 ftpClient.enterLocalActiveMode()
                 ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
-                ftpClient.setDataTimeout(10000)
+                ftpClient.setDataTimeout(TIMEOUT)
 
                 val replyCode: Int = ftpClient.replyCode
                 if (!FTPReply.isPositiveCompletion(replyCode)) {
