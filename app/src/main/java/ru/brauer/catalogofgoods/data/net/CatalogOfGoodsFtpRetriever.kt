@@ -4,55 +4,43 @@ import android.accounts.NetworkErrorException
 import android.util.Log
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.ObservableEmitter
-import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
-import org.apache.commons.net.ftp.FTPReply
 import ru.brauer.catalogofgoods.BuildConfig
 import ru.brauer.catalogofgoods.data.commerceml.EntityOfCommerceMl
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
+import ru.brauer.catalogofgoods.data.settings.FtpSettingsData
 import ru.brauer.catalogofgoods.extensions.convertPathOfPhotoRelativelyFileName
 import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Inject
 
 class CatalogOfGoodsFtpRetriever @Inject constructor(
     private val commerceMlParser: IXmlParserByRule,
-    private val schedulersProvider: ISchedulerProvider
+    private val schedulersProvider: ISchedulerProvider,
+    private val ftpClientConnectHelperProvider: FtpClientConnectHelperProvider
 ) : ICatalogOfGoodsRetrieverFromNet {
-
-    companion object {
-        private const val TIMEOUT = 10000
-    }
 
     override fun retrieve(): Observable<List<EntityOfCommerceMl>> =
         Observable.create<List<EntityOfCommerceMl>> { emitter ->
 
-            val ftpClient = FTPClient()
-            ftpClient.connect(BuildConfig.HOST_ADDRESS)
-            if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
-                ftpClient.enterLocalActiveMode()
-                ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
-                ftpClient.setDataTimeout(TIMEOUT)
+            val ftpSettings = FtpSettingsData(
+                hostAddress = BuildConfig.HOST_ADDRESS,
+                path = BuildConfig.PATH,
+                login = BuildConfig.LOGIN,
+                password = BuildConfig.PASSWORD
+            )
 
-                val replyCode: Int = ftpClient.replyCode
-                if (!FTPReply.isPositiveCompletion(replyCode)) {
-                    ftpClient.disconnect()
-                    throw NetworkErrorException("FTP server refused connection. Reply code $replyCode")
-                }
+            val ftpClientConnectHelper = ftpClientConnectHelperProvider.getFtpClientConnectHelper()
 
-                val workDirectory = BuildConfig.PATH
-                if (!ftpClient.changeWorkingDirectory(workDirectory)) {
-                    ftpClient.logout()
-                    ftpClient.disconnect()
-                    throw NetworkErrorException("Not found directory '$workDirectory'")
-                }
-                val listOfFiles = getListOfFiles(ftpClient)
+            if (ftpClientConnectHelper.connect(ftpSettings)) {
+                val listOfFiles = getListOfFiles(ftpClientConnectHelper.ftpClient)
                 try {
-                    retrieveFromEachFiles(listOfFiles, ftpClient, emitter)
+                    retrieveFromEachFiles(listOfFiles, ftpClientConnectHelper.ftpClient, emitter)
                 } catch (exception: Throwable) {
                     emitter.onError(exception)
                 }
-                ftpClient.logout()
-                ftpClient.disconnect()
+                ftpClientConnectHelper.disconnect()
+            } else {
+                ftpClientConnectHelper.throwable?.let { throw it }
             }
             emitter.onComplete()
         }.subscribeOn(schedulersProvider.io())

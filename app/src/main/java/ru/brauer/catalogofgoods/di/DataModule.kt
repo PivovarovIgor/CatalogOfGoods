@@ -9,6 +9,7 @@ import ru.brauer.catalogofgoods.data.commerceml.CommerceMlParser
 import ru.brauer.catalogofgoods.data.commerceml.IXmlParserByRule
 import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.net.CatalogOfGoodsFtpRetriever
+import ru.brauer.catalogofgoods.data.net.FtpClientConnectHelperProvider
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.IRepository
 import ru.brauer.catalogofgoods.rx.ISchedulerProvider
@@ -34,9 +35,10 @@ class DataModule {
     @Provides
     fun retrieverFromNet(
         parser: IXmlParserByRule,
-        schedulersProvider: ISchedulerProvider
+        schedulersProvider: ISchedulerProvider,
+        ftpClientConnectHelperProvider: FtpClientConnectHelperProvider
     ): ICatalogOfGoodsRetrieverFromNet =
-        CatalogOfGoodsFtpRetriever(parser, schedulersProvider)
+        CatalogOfGoodsFtpRetriever(parser, schedulersProvider, ftpClientConnectHelperProvider)
 
     @Singleton
     @Provides

@@ -2,13 +2,12 @@ package ru.brauer.catalogofgoods.data.settings
 
 import android.content.Context
 import android.content.SharedPreferences
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 abstract class Settings<T> {
-    abstract fun getSettingsData(): T
+    abstract fun getSettingsData(): StateFlow<T>
     abstract fun setSettingsData(settingData: T)
 }
 
@@ -25,31 +24,36 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
     private val sharedPreference: SharedPreferences =
         context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
-    private var settingsData: FtpSettingsData = FtpSettingsData.emptyData()
+    private var settingsDataFlow: MutableStateFlow<FtpSettingsData> =
+        MutableStateFlow(FtpSettingsData.emptyData())
 
-
-    override fun getSettingsData(): FtpSettingsData {
-        TODO("Not yet implemented")
+    init {
+        loadSettingsData()
     }
+
+    override fun getSettingsData(): StateFlow<FtpSettingsData> = settingsDataFlow
 
     override fun setSettingsData(settingData: FtpSettingsData) {
-        TODO("Not yet implemented")
+        settingsDataFlow.value = settingData
     }
 
-    private suspend fun loadSettingsData() = coroutineScope {
-        val settingsRaw = sharedPreference.all
-        val data = async(Dispatchers.IO) {
-            settingsRaw?.let {
-                FtpSettingsData(
-                    hostAddress = it[VALUE_HOST_ADDRESS] as? String ?: "",
-                    path = it[VALUE_PATH] as? String ?: "",
-                    login = it[VALUE_LOGIN] as? String ?: "",
-                    password = it[VALUE_PASSWORD] as? String ?: ""
-                )
-            } ?: FtpSettingsData.emptyData()
-        }
-        withContext(Dispatchers.Main) {
-            settingsData = data.await()
+    private fun loadSettingsData() {
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            val settingsRaw = sharedPreference.all
+            val data = async(Dispatchers.IO) {
+                settingsRaw?.let {
+                    FtpSettingsData(
+                        hostAddress = it[VALUE_HOST_ADDRESS] as? String ?: "",
+                        path = it[VALUE_PATH] as? String ?: "",
+                        login = it[VALUE_LOGIN] as? String ?: "",
+                        password = it[VALUE_PASSWORD] as? String ?: ""
+                    )
+                } ?: FtpSettingsData.emptyData()
+            }
+            withContext(Dispatchers.Main) {
+                settingsDataFlow.value = data.await()
+            }
         }
     }
 }
