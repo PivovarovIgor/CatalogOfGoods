@@ -87,6 +87,6 @@ class FtpClientConnectHelper {
     }
 }
 
-class FtpClientConnectHelperProvider() {
+class FtpClientConnectHelperProvider {
     fun getFtpClientConnectHelper() = FtpClientConnectHelper()
 }

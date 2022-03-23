@@ -9,6 +9,7 @@ import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import ru.brauer.catalogofgoods.data.database.entities.GoodsEnt
+import ru.brauer.catalogofgoods.data.settings.FtpSettings
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
 import ru.brauer.catalogofgoods.domain.IRepository
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class CatalogOfGoodsViewModel @Inject constructor(
     private val repository: IRepository,
     private val compositeDisposable: CompositeDisposable,
-    private val schedulerProvider: ISchedulerProvider
+    private val schedulerProvider: ISchedulerProvider,
+    private val settings: FtpSettings
 ) :
     ViewModel() {
 

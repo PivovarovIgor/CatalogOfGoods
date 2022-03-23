@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.paging.PagingData
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import io.reactivex.rxjava3.core.Single
@@ -26,6 +27,7 @@ import org.mockito.MockitoAnnotations.openMocks
 import org.robolectric.annotation.Config
 import ru.brauer.catalogofgoods.TestCoroutineRule
 import ru.brauer.catalogofgoods.data.entities.Goods
+import ru.brauer.catalogofgoods.data.settings.FtpSettings
 import ru.brauer.catalogofgoods.domain.IRepository
 import ru.brauer.catalogofgoods.stubs.SchedulerProviderStub
 
@@ -65,7 +67,8 @@ class CatalogOfGoodsViewModelTest {
             viewModel = CatalogOfGoodsViewModel(
                 repository = repository,
                 compositeDisposable = compositeDisposable,
-                schedulerProvider = SchedulerProviderStub()
+                schedulerProvider = SchedulerProviderStub(),
+                settings = FtpSettings(mock())
             )
         }
     }

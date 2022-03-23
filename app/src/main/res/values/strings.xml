@@ -12,7 +12,11 @@
     <string name="search_hint">search goods</string>
     <string name="search_goods">Search goods</string>
     <string name="begin_loading_data">begin loading data from FTP server</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="settings">Settings</string>
+    <string name="host_address">Host address</string>
+    <string name="login">Login</string>
+    <string name="path">Path</string>
+    <string name="password">Password</string>
 
 </resources>

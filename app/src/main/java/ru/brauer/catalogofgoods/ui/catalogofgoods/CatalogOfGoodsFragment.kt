@@ -80,6 +80,7 @@ class CatalogOfGoodsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        App.instance.appComponent.inject(this)
         initRecyclerView()
         searchQueryText = viewModel.searchQueryText
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
@@ -89,6 +90,10 @@ class CatalogOfGoodsFragment : Fragment() {
         inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
         menu.findItem(R.id.action_load_data)?.setOnMenuItemClickListener {
             viewModel.beginLoadingData()
+            true
+        }
+        menu.findItem(R.id.action_goto_settings)?.setOnMenuItemClickListener {
+            router.navigateTo(screens.appSettings())
             true
         }
         val searchMenuItem = menu.findItem(R.id.action_search_goods)
@@ -125,7 +130,6 @@ class CatalogOfGoodsFragment : Fragment() {
 
     private fun initRecyclerView() {
 
-        App.instance.appComponent.inject(this)
         binding?.run {
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
