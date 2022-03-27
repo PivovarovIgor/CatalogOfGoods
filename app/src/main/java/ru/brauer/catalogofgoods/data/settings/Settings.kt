@@ -2,6 +2,7 @@ package ru.brauer.catalogofgoods.data.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,10 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
         private const val VALUE_PASSWORD = "ftp_password"
     }
 
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private var jobWriting: Job? = null
+    private var jobLoadingPreference: Job? = null
+
     private val sharedPreference: SharedPreferences =
         context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
@@ -28,18 +33,40 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
         MutableStateFlow(FtpSettingsData.emptyData())
 
     init {
+        sharedPreference.registerOnSharedPreferenceChangeListener { _, key ->
+            if (key == VALUE_HOST_ADDRESS
+                || key == VALUE_LOGIN
+                || key == VALUE_PATH
+                || key == VALUE_PASSWORD) {
+                loadSettingsData()
+            }
+        }
         loadSettingsData()
     }
 
     override fun getSettingsData(): StateFlow<FtpSettingsData> = settingsDataFlow
 
     override fun setSettingsData(settingData: FtpSettingsData) {
+        writeSettingsData(settingData)
         settingsDataFlow.value = settingData
     }
 
+    private fun writeSettingsData(settingData: FtpSettingsData) {
+        jobWriting?.cancel()
+        jobWriting = scope.launch {
+            sharedPreference.edit {
+                putString(VALUE_HOST_ADDRESS, settingData.hostAddress)
+                putString(VALUE_PATH, settingData.path)
+                putString(VALUE_LOGIN, settingData.login)
+                putString(VALUE_PASSWORD, settingData.password)
+            }
+        }
+    }
+
     private fun loadSettingsData() {
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
+        jobLoadingPreference?.cancel()
+        jobLoadingPreference = scope.launch(Dispatchers.IO) {
+            delay(100)
             val settingsRaw = sharedPreference.all
             val data = async(Dispatchers.IO) {
                 settingsRaw?.let {
