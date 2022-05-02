@@ -8,8 +8,9 @@ import org.xmlpull.v1.XmlPullParser
 import ru.brauer.catalogofgoods.BuildConfig
 import java.io.IOException
 import java.io.InputStream
+import javax.inject.Inject
 
-class CommerceMlParser : IXmlParserByRule {
+class CommerceMlParser @Inject constructor() : IXmlParserByRule {
 
     companion object {
         private val xmlNamespace: String? = null

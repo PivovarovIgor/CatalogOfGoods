@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods.di
 
 import androidx.room.Room
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import ru.brauer.catalogofgoods.App
@@ -11,36 +12,15 @@ import ru.brauer.catalogofgoods.data.database.AppDatabase
 import ru.brauer.catalogofgoods.data.net.CatalogOfGoodsFtpRetriever
 import ru.brauer.catalogofgoods.data.net.ICatalogOfGoodsRetrieverFromNet
 import ru.brauer.catalogofgoods.domain.IRepository
-import ru.brauer.catalogofgoods.rx.ISchedulerProvider
 import javax.inject.Singleton
 
-@Module
+@Module(includes = [DataModuleBinds::class])
 class DataModule {
 
     companion object {
         private const val DB_NAME = "appDatabase.db"
     }
 
-    @Singleton
-    @Provides
-    fun repository(
-        retrieverFromNet: ICatalogOfGoodsRetrieverFromNet,
-        appDatabase: AppDatabase,
-        schedulersProvider: ISchedulerProvider
-    ): IRepository =
-        CatalogOfGoodsRepository(retrieverFromNet, appDatabase, schedulersProvider)
-
-    @Singleton
-    @Provides
-    fun retrieverFromNet(
-        parser: IXmlParserByRule,
-        schedulersProvider: ISchedulerProvider
-    ): ICatalogOfGoodsRetrieverFromNet =
-        CatalogOfGoodsFtpRetriever(parser, schedulersProvider)
-
-    @Singleton
-    @Provides
-    fun commerceMlParser(): IXmlParserByRule = CommerceMlParser()
 
     @Singleton
     @Provides
@@ -52,4 +32,22 @@ class DataModule {
         )
             .fallbackToDestructiveMigration()
             .build()
+}
+
+@Module
+interface DataModuleBinds {
+
+    @Singleton
+    @Binds
+    fun getCmParser(com: CommerceMlParser): IXmlParserByRule
+
+    @Singleton
+    @Binds
+    fun getRepository(repository: CatalogOfGoodsRepository): IRepository
+
+    @Singleton
+    @Binds
+    fun retrieverFromNet(
+        catalogOfGoodsRepository: CatalogOfGoodsFtpRetriever
+    ): ICatalogOfGoodsRetrieverFromNet
 }
