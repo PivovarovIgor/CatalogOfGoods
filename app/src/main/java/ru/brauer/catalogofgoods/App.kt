@@ -7,6 +7,7 @@ import ru.brauer.catalogofgoods.di.DaggerAppComponent
 import io.reactivex.rxjava3.exceptions.UndeliverableException
 
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
+import ru.brauer.catalogofgoods.di.AppComponent
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
@@ -20,7 +21,7 @@ class App : Application() {
         lateinit var instance: App
     }
 
-    val appComponent by lazy {
+    val appComponent: AppComponent by lazy {
         DaggerAppComponent.builder()
             .appModule(AppModule(this@App))
             .build()
