@@ -72,8 +72,8 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
 
     //Dagger 2 DI
-    implementation 'com.google.dagger:dagger:2.40'
-    kapt 'com.google.dagger:dagger-compiler:2.40'
+    implementation 'com.google.dagger:dagger:2.41'
+    kapt 'com.google.dagger:dagger-compiler:2.41'
 
     //Room
     def room_version = "2.4.1"

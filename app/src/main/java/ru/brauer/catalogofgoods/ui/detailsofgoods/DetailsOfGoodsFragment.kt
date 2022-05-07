@@ -28,7 +28,7 @@ class DetailsOfGoodsFragment : Fragment() {
     }
 
     @Inject
-    lateinit var factoryViewModel: DetailsOfGoodsViewModel.Factory.Factory
+    lateinit var factoryViewModel: FactoryDetailsOfGoodsViewModel
     private val viewModel: DetailsOfGoodsViewModel by viewModels {
         factoryViewModel.create(arguments?.getParcelable(KEY_USER) ?: Goods.empty())
     }
