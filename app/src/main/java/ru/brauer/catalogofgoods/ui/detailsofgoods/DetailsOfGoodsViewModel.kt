@@ -11,10 +11,6 @@ class DetailsOfGoodsViewModel(
     val goods: Goods
 ) : ViewModel() {
 
-    init {
-        println("VVV create VM DetailsOfGoodsViewModel")
-    }
-
     @Suppress("UNCHECKED_CAST")
     class Factory @AssistedInject constructor(@Assisted("goods") private val goods: Goods) :
         ViewModelProvider.Factory {
