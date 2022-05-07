@@ -18,6 +18,13 @@ import javax.inject.Singleton
     ]
 )
 interface AppComponent {
+
+    @Component.Builder
+    interface Builder {
+        fun appModule(appModule: AppModule): Builder
+        fun build(): AppComponent
+    }
+
     fun inject(mainActivity: MainActivity)
     fun inject(catalogOfGoodsFragment: CatalogOfGoodsFragment)
     fun inject(detailsOfGoodsFragment: DetailsOfGoodsFragment)
