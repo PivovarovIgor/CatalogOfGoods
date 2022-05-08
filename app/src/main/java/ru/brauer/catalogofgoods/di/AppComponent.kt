@@ -1,6 +1,8 @@
 package ru.brauer.catalogofgoods.di
 
+import dagger.BindsInstance
 import dagger.Component
+import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelModule
 import ru.brauer.catalogofgoods.ui.MainActivity
 import ru.brauer.catalogofgoods.ui.catalogofgoods.CatalogOfGoodsFragment
@@ -13,7 +15,6 @@ import javax.inject.Singleton
         CiceroneModule::class,
         ViewModelModule::class,
         DataModule::class,
-        AppModule::class,
         RxModule::class
     ]
 )
@@ -21,7 +22,8 @@ interface AppComponent {
 
     @Component.Builder
     interface Builder {
-        fun appModule(appModule: AppModule): Builder
+        @BindsInstance
+        fun context(context: App): Builder
         fun build(): AppComponent
     }
 

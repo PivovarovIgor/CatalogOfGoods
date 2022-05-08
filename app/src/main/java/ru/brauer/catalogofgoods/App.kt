@@ -2,16 +2,11 @@ package ru.brauer.catalogofgoods
 
 import android.app.Application
 import android.util.Log
-import ru.brauer.catalogofgoods.di.AppModule
-import ru.brauer.catalogofgoods.di.DaggerAppComponent
 import io.reactivex.rxjava3.exceptions.UndeliverableException
-
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import ru.brauer.catalogofgoods.di.AppComponent
+import ru.brauer.catalogofgoods.di.DaggerAppComponent
 import java.io.IOException
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.lang.NullPointerException
 import java.net.SocketException
 
 
@@ -23,7 +18,7 @@ class App : Application() {
 
     val appComponent: AppComponent by lazy {
         DaggerAppComponent.builder()
-            .appModule(AppModule(this@App))
+            .context(this@App)
             .build()
     }
 
