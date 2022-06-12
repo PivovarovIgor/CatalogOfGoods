@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.brauer.catalogofgoods.data.settings.FtpSettings
 import ru.brauer.catalogofgoods.data.settings.FtpSettingsData
@@ -19,7 +21,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            settings.getSettingsData().collect {
+            settings.getSettingsData().collectLatest {
                 _liveData.postValue(it)
             }
         }

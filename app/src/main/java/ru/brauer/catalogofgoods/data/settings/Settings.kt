@@ -4,11 +4,12 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 abstract class Settings<T> {
-    abstract fun getSettingsData(): StateFlow<T>
+    abstract fun getSettingsData(): Flow<T>
     abstract fun setSettingsData(settingData: T)
 }
 
@@ -22,7 +23,7 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
         private const val VALUE_PASSWORD = "ftp_password"
     }
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var jobWriting: Job? = null
     private var jobLoadingPreference: Job? = null
 
@@ -37,14 +38,18 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
             if (key == VALUE_HOST_ADDRESS
                 || key == VALUE_LOGIN
                 || key == VALUE_PATH
-                || key == VALUE_PASSWORD) {
+                || key == VALUE_PASSWORD
+            ) {
                 loadSettingsData()
             }
         }
         loadSettingsData()
     }
 
-    override fun getSettingsData(): StateFlow<FtpSettingsData> = settingsDataFlow
+    override fun getSettingsData(): Flow<FtpSettingsData> = settingsDataFlow
+        .distinctUntilChanged { old, new ->
+            old == new
+        }
 
     override fun setSettingsData(settingData: FtpSettingsData) {
         writeSettingsData(settingData)
@@ -78,9 +83,7 @@ class FtpSettings(context: Context) : Settings<FtpSettingsData>() {
                     )
                 } ?: FtpSettingsData.emptyData()
             }
-            withContext(Dispatchers.Main) {
-                settingsDataFlow.value = data.await()
-            }
+            settingsDataFlow.value = data.await()
         }
     }
 }
