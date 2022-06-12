@@ -46,7 +46,7 @@ class FtpClientConnectHelper {
             }
         }
 
-        ftpClient.enterLocalActiveMode()
+        ftpClient.enterLocalPassiveMode()
         ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
         ftpClient.setDataTimeout(TIMEOUT)
 
