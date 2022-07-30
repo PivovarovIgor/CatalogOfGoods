@@ -1,6 +1,7 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.annotation.StringRes
@@ -23,6 +24,7 @@ import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
+import ru.brauer.catalogofgoods.services.LoadingGoodsService
 import ru.brauer.catalogofgoods.ui.IScreens
 import javax.inject.Inject
 
@@ -88,7 +90,8 @@ class CatalogOfGoodsFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
         menu.findItem(R.id.action_load_data)?.setOnMenuItemClickListener {
-            viewModel.beginLoadingData()
+            Intent(context, LoadingGoodsService::class.java)
+                .also {  context?.startForegroundService(it) }
             true
         }
         val searchMenuItem = menu.findItem(R.id.action_search_goods)
