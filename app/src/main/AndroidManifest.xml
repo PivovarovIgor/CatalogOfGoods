@@ -23,7 +23,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".services.LoadingGoodsService"/>
+        <service android:name=".services.LoadingGoodsService"
+            android:foregroundServiceType="dataSync"/>
     </application>
 
 </manifest>
