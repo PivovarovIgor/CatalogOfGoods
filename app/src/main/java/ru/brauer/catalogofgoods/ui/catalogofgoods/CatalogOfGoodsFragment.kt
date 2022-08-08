@@ -202,6 +202,7 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             context?.startForegroundService(it)
                         }
+
                     }
                 true
             }
