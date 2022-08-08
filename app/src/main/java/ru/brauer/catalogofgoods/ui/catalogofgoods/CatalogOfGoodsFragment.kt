@@ -1,11 +1,15 @@
 package ru.brauer.catalogofgoods.ui.catalogofgoods
 
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -23,10 +27,11 @@ import ru.brauer.catalogofgoods.databinding.FragmentCatalogOfGoodsBinding
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelFactory
 import ru.brauer.catalogofgoods.domain.AppState
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
+import ru.brauer.catalogofgoods.services.LoadingGoodsService
 import ru.brauer.catalogofgoods.ui.IScreens
 import javax.inject.Inject
 
-class CatalogOfGoodsFragment : Fragment() {
+class CatalogOfGoodsFragment : Fragment(), MenuProvider {
 
     companion object {
         fun newInstance() = CatalogOfGoodsFragment()
@@ -72,7 +77,6 @@ class CatalogOfGoodsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        setHasOptionsMenu(true)
         return FragmentCatalogOfGoodsBinding.inflate(inflater, container, false)
             .also { binding = it }
             .root
@@ -83,44 +87,7 @@ class CatalogOfGoodsFragment : Fragment() {
         initRecyclerView()
         searchQueryText = viewModel.searchQueryText
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
-        menu.findItem(R.id.action_load_data)?.setOnMenuItemClickListener {
-            viewModel.beginLoadingData()
-            true
-        }
-        val searchMenuItem = menu.findItem(R.id.action_search_goods)
-        val searchView = searchMenuItem?.actionView as? SearchView
-
-        if (searchQueryText.isNotBlank()) {
-            searchView?.let {
-                searchMenuItem.expandActionView()
-                it.setQuery(searchQueryText, false)
-                it.clearFocus()
-            }
-        }
-
-        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-
-            var job: Job? = null
-
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                job?.cancel()
-                job = lifecycleScope.launch {
-                    if (newText?.isNotBlank() == true) {
-                        delay(NEW_SEARCH_QUERY_DELAY)
-                    }
-                    viewModel.onSearchQueryChanged(newText ?: "")
-                }
-                return true
-            }
-        })
+        requireActivity().addMenuProvider(this, viewLifecycleOwner)
     }
 
     private fun initRecyclerView() {
@@ -192,4 +159,51 @@ class CatalogOfGoodsFragment : Fragment() {
         super.onDestroyView()
         binding = null
     }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.options_menu_of_goods_catalog, menu)
+        val searchMenuItem = menu.findItem(R.id.action_search_goods)
+        val searchView = searchMenuItem?.actionView as? SearchView
+
+        if (searchQueryText.isNotBlank()) {
+            searchView?.let {
+                searchMenuItem.expandActionView()
+                it.setQuery(searchQueryText, false)
+                it.clearFocus()
+            }
+        }
+
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+
+            var job: Job? = null
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                job?.cancel()
+                job = lifecycleScope.launch {
+                    if (newText?.isNotBlank() == true) {
+                        delay(NEW_SEARCH_QUERY_DELAY)
+                    }
+                    viewModel.onSearchQueryChanged(newText ?: "")
+                }
+                return true
+            }
+        })
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+        when(menuItem.itemId) {
+            R.id.action_load_data -> {
+                Intent(context, LoadingGoodsService::class.java)
+                    .also {  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context?.startForegroundService(it)
+                    }
+                    }
+                true
+            }
+            else -> false
+        }
 }

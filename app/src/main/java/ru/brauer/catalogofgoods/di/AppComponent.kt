@@ -2,6 +2,7 @@ package ru.brauer.catalogofgoods.di
 
 import dagger.Component
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelModule
+import ru.brauer.catalogofgoods.services.LoadingGoodsService
 import ru.brauer.catalogofgoods.ui.MainActivity
 import ru.brauer.catalogofgoods.ui.catalogofgoods.CatalogOfGoodsFragment
 import javax.inject.Singleton
@@ -19,4 +20,5 @@ import javax.inject.Singleton
 interface AppComponent {
     fun inject(mainActivity: MainActivity)
     fun inject(catalogOfGoodsFragment: CatalogOfGoodsFragment)
+    fun inject(loadingGoodsService: LoadingGoodsService)
 }
