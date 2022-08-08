@@ -195,12 +195,14 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
-        when(menuItem.itemId) {
+        when (menuItem.itemId) {
             R.id.action_load_data -> {
                 Intent(context, LoadingGoodsService::class.java)
-                    .also {  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context?.startForegroundService(it)
-                    }
+                    .also {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            context?.startForegroundService(it)
+                        }
+
                     }
                 true
             }
