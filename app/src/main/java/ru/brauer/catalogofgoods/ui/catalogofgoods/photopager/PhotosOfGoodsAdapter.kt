@@ -79,7 +79,6 @@ class PhotosOfGoodsAdapter(private val lifecycleCoroutineScope: LifecycleCorouti
                 if (currentPosition == itemCount) {
                     currentPosition = 0
                 }
-                //recyclerView?.setOnScrollChangeListener(::onScrollChangeListener)
             }
         }
     }
