@@ -58,7 +58,7 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
     }
 
     private val pagingAdapter: CatalogOfGoodsAdapter by lazy {
-        CatalogOfGoodsAdapter(goodsComparator) {
+        CatalogOfGoodsAdapter(goodsComparator, lifecycleScope) {
             router.navigateTo(screens.detailsOfGoods(it))
         }
     }
