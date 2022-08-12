@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import ru.brauer.catalogofgoods.databinding.ItemPhotoBinding
+import ru.brauer.catalogofgoods.extensions.isShowedWhole
 import ru.brauer.catalogofgoods.extensions.loadFirstImage
 import kotlin.math.abs
 import kotlin.random.Random
@@ -69,15 +70,16 @@ class PhotosOfGoodsAdapter(private val lifecycleCoroutineScope: LifecycleCorouti
         job?.cancel()
         job = lifecycleCoroutineScope?.launchWhenResumed {
             while (itemCount > 1) {
-                val delayMilisec = 1000L * Random.nextLong(3, 10)
+                val delayMilisec = 1000L * Random.nextLong(3, 5)
                 delay(delayMilisec)
-                notifyItemChanged(currentPosition)
-                delay(1000)
-
-                recyclerView?.setOnScrollChangeListener(null)
-                recyclerView?.smoothScrollToPosition(currentPosition++)
-                if (currentPosition == itemCount) {
-                    currentPosition = 0
+                if (recyclerView.isShowedWhole()) {
+                    notifyItemChanged(currentPosition)
+                    delay(1000)
+                    recyclerView?.setOnScrollChangeListener(null)
+                    recyclerView?.smoothScrollToPosition(currentPosition++)
+                    if (currentPosition == itemCount) {
+                        currentPosition = 0
+                    }
                 }
             }
         }
