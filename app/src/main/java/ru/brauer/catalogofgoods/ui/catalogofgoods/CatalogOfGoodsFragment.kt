@@ -11,7 +11,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
@@ -63,12 +63,7 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
         }
     }
 
-    private val viewModel: CatalogOfGoodsViewModel by lazy {
-        ViewModelProvider(
-            this@CatalogOfGoodsFragment,
-            viewModelFactory
-        ).get(CatalogOfGoodsViewModel::class.java)
-    }
+    private val viewModel: CatalogOfGoodsViewModel by viewModels { viewModelFactory }
 
     private var searchQueryText: String = ""
 
@@ -84,6 +79,7 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        App.instance.appComponent.inject(this)
         initRecyclerView()
         searchQueryText = viewModel.searchQueryText
         viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
@@ -91,8 +87,6 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
     }
 
     private fun initRecyclerView() {
-
-        App.instance.appComponent.inject(this)
         binding?.run {
             listOfGoods.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)

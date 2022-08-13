@@ -1,10 +1,13 @@
 package ru.brauer.catalogofgoods.di
 
+import dagger.BindsInstance
 import dagger.Component
+import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.di.viewmodel.ViewModelModule
 import ru.brauer.catalogofgoods.services.LoadingGoodsService
 import ru.brauer.catalogofgoods.ui.MainActivity
 import ru.brauer.catalogofgoods.ui.catalogofgoods.CatalogOfGoodsFragment
+import ru.brauer.catalogofgoods.ui.detailsofgoods.DetailsOfGoodsFragment
 import javax.inject.Singleton
 
 @Singleton
@@ -13,12 +16,20 @@ import javax.inject.Singleton
         CiceroneModule::class,
         ViewModelModule::class,
         DataModule::class,
-        AppModule::class,
         RxModule::class
     ]
 )
 interface AppComponent {
+
+    @Component.Builder
+    interface Builder {
+        @BindsInstance
+        fun context(context: App): Builder
+        fun build(): AppComponent
+    }
+
     fun inject(mainActivity: MainActivity)
     fun inject(catalogOfGoodsFragment: CatalogOfGoodsFragment)
+    fun inject(detailsOfGoodsFragment: DetailsOfGoodsFragment)
     fun inject(loadingGoodsService: LoadingGoodsService)
 }
