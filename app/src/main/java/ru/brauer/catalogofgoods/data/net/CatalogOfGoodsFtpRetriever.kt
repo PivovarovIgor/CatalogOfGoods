@@ -25,7 +25,7 @@ class CatalogOfGoodsFtpRetriever @Inject constructor(
             val ftpClient = FTPClient()
             ftpClient.connect(BuildConfig.HOST_ADDRESS)
             if (ftpClient.login(BuildConfig.LOGIN, BuildConfig.PASSWORD)) {
-                ftpClient.enterLocalActiveMode()
+                ftpClient.enterLocalPassiveMode()
                 ftpClient.setFileType(FTP.ASCII_FILE_TYPE)
                 ftpClient.setDataTimeout(10000)
 

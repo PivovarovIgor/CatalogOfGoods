@@ -104,7 +104,8 @@ class CatalogOfGoodsRepository @Inject constructor(
     override fun getPagingFlowFromLocalSource(filter: (GoodsEnt) -> List<Pair<Int, Int>>?): Flow<PagingData<Goods>> =
         Pager(
             config = PagingConfig(
-                pageSize = PAGE_SIZE
+                pageSize = PAGE_SIZE,
+                maxSize = PAGE_SIZE * 5
             ),
             pagingSourceFactory = { appDatabase.goodsDao.getPage() }
         ).flow
