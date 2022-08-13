@@ -1,5 +1,7 @@
 package ru.brauer.catalogofgoods.extensions
 
+import android.graphics.Rect
+import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -49,4 +51,15 @@ private tailrec fun CharSequence.getAllContains(
     val end = start + string.length
     result += (start to end)
     return this.getAllContains(string, end + 1, result)
+}
+
+fun View?.isShowedWhole(): Boolean {
+    val view: View = this ?: return false
+    if (!view.isShown) return false
+    val actualPosition = Rect()
+    view.getGlobalVisibleRect(actualPosition)
+    return with(actualPosition) {
+        view.width == right - left
+                && view.height == bottom - top
+    }
 }

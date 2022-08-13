@@ -3,6 +3,7 @@ package ru.brauer.catalogofgoods.ui.catalogofgoods
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.PagerSnapHelper
@@ -15,6 +16,7 @@ import ru.brauer.catalogofgoods.ui.catalogofgoods.photopager.PhotosOfGoodsAdapte
 
 class CatalogOfGoodsAdapter(
     diffCallback: DiffUtil.ItemCallback<Goods>,
+    private val lifecycleCoroutineScope: LifecycleCoroutineScope,
     private val itemOpener: (data: Goods) -> Unit
 ) : PagingDataAdapter<Goods, CatalogOfGoodsAdapter.ViewHolder>(diffCallback) {
 
@@ -39,7 +41,7 @@ class CatalogOfGoodsAdapter(
         private val binding: ItemGoodsBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private val adapter: PhotosOfGoodsAdapter = PhotosOfGoodsAdapter()
+        private val adapter: PhotosOfGoodsAdapter = PhotosOfGoodsAdapter(lifecycleCoroutineScope)
 
         private val snapHelper = PagerSnapHelper()
             .apply { attachToRecyclerView(binding.photosOfGoods) }
