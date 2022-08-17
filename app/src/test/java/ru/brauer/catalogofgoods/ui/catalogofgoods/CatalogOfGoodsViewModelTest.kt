@@ -27,6 +27,7 @@ import org.robolectric.annotation.Config
 import ru.brauer.catalogofgoods.TestCoroutineRule
 import ru.brauer.catalogofgoods.data.entities.Goods
 import ru.brauer.catalogofgoods.domain.IRepository
+import ru.brauer.catalogofgoods.services.BackgroundLoadingStateChannel
 import ru.brauer.catalogofgoods.stubs.SchedulerProviderStub
 
 @RunWith(AndroidJUnit4::class)
@@ -51,6 +52,9 @@ class CatalogOfGoodsViewModelTest {
     @Mock
     private lateinit var compositeDisposable: CompositeDisposable
 
+    @Mock
+    private lateinit var backgroundLoadingStateChannel: BackgroundLoadingStateChannel
+
     private lateinit var mocks: AutoCloseable
 
     @Before
@@ -65,7 +69,7 @@ class CatalogOfGoodsViewModelTest {
             viewModel = CatalogOfGoodsViewModel(
                 repository = repository,
                 compositeDisposable = compositeDisposable,
-                schedulerProvider = SchedulerProviderStub()
+                backgroundLoadingStateChannel = backgroundLoadingStateChannel,
             )
         }
     }
@@ -78,7 +82,7 @@ class CatalogOfGoodsViewModelTest {
             )
         )
 
-        viewModel.observe(lifecycleOwnerFake, { }, { })
+        viewModel.observe(lifecycleOwnerFake, { })
         verify(repository, times(1)).getGoods(any())
     }
 

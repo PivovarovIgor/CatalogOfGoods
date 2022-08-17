@@ -8,11 +8,12 @@ import android.view.*
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.terrakok.cicerone.Router
@@ -82,8 +83,13 @@ class CatalogOfGoodsFragment : Fragment(), MenuProvider {
         App.instance.appComponent.inject(this)
         initRecyclerView()
         searchQueryText = viewModel.searchQueryText
-        viewModel.observe(viewLifecycleOwner, ::renderData, ::renderBackGroundProcess)
+        viewModel.observe(viewLifecycleOwner, ::renderData)
         requireActivity().addMenuProvider(this, viewLifecycleOwner)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.backgroundLoadingState.collect(::renderBackGroundProcess)
+            }
+        }
     }
 
     private fun initRecyclerView() {

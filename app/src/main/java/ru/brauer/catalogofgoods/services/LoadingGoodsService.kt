@@ -1,7 +1,6 @@
 package ru.brauer.catalogofgoods.services
 
 import android.app.*
-import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
@@ -14,6 +13,7 @@ import androidx.core.app.TaskStackBuilder
 import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlinx.coroutines.*
 import ru.brauer.catalogofgoods.App
 import ru.brauer.catalogofgoods.R
 import ru.brauer.catalogofgoods.domain.BackgroundLoadingState
@@ -30,8 +30,11 @@ class LoadingGoodsService : Service() {
     lateinit var compositeDisposable: CompositeDisposable
     @Inject
     lateinit var schedulerProvider: ISchedulerProvider
+    @Inject
+    lateinit var channel: BackgroundLoadingStateChannel
 
     private var disposable: Disposable? = null
+    private var coroutineScope: CoroutineScope? = null
     private var notificationService: NotificationManagerCompat? = null
     private var notificationBuilder: NotificationCompat.Builder? = null
 
@@ -47,21 +50,26 @@ class LoadingGoodsService : Service() {
         }
 
         override fun onNext(processing: BackgroundLoadingState.LoadingState) {
-            // backgroundProcessing.postValue(processing)
-            val not = createNotification(processing.count.toString())
-            notificationService?.notify(NOTIFY_ID, not)
+            channel.trySend(processing)
         }
 
-        override fun onError(exeption: Throwable) {
-            val not = createNotification(exeption.message.toString())
-            notificationService?.notify(NOTIFY_ID, not)
+        override fun onError(exception: Throwable) {
+            channel.trySend(BackgroundLoadingState.Error(exception))
+            completeLoadingData()
         }
 
         override fun onComplete() {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-            }
+            channel.trySend(BackgroundLoadingState.Complete)
+            completeLoadingData()
         }
+    }
+
+    private fun completeLoadingData() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        }
+        coroutineScope?.cancel()
+        coroutineScope = null
     }
 
     override fun onCreate() {
@@ -150,6 +158,25 @@ class LoadingGoodsService : Service() {
     private fun beginLoadingData() {
         if (disposable?.isDisposed == false) {
             disposable?.dispose()
+        }
+        coroutineScope?.cancel()
+        coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+            .apply {
+                launch {
+                    channel.backgroundLoadingState.collect { state ->
+                        when(state) {
+                            is BackgroundLoadingState.Complete -> { }
+                            is BackgroundLoadingState.LoadingState -> {
+                                val not = createNotification(state.count.toString())
+                                notificationService?.notify(NOTIFY_ID, not)
+                            }
+                            is BackgroundLoadingState.Error -> {
+                                val not = createNotification(state.exception.message.toString())
+                                notificationService?.notify(NOTIFY_ID, not)
+                            }
+                        }
+                    }
+            }
         }
         disposable = getData()
     }
